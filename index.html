@@ -24,14 +24,26 @@
     * { box-sizing: border-box; }
 
 
-    #three-bg {
+    #lumi-three {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
       z-index: 0;
       pointer-events: none;
-      opacity: .62;
+      opacity: .96;
+    }
+
+    .lumi-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 4%, rgba(255,235,174,.28), transparent 28rem),
+        radial-gradient(circle at 10% 20%, rgba(153,177,132,.22), transparent 24rem),
+        radial-gradient(circle at 90% 18%, rgba(214,176,206,.14), transparent 22rem),
+        linear-gradient(180deg, rgba(248,247,241,0), rgba(248,247,241,.85) 74%);
     }
 
     .app {
@@ -39,34 +51,272 @@
       z-index: 1;
     }
 
+    header::before {
+      content: "";
+      position: absolute;
+      inset: 20px 0 auto;
+      height: 240px;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 8%, rgba(255,247,215,.78), transparent 30rem);
+      filter: blur(2px);
+    }
+
+    h1 {
+      text-shadow: 0 2px 0 rgba(255,255,255,.7), 0 16px 48px rgba(89,107,77,.18);
+    }
+
+    .subtitle {
+      background: rgba(255,253,248,.58);
+      border: 1px solid rgba(255,255,255,.62);
+      border-radius: 999px;
+      padding: 10px 18px;
+      box-shadow: 0 12px 34px rgba(51,58,46,.07);
+      backdrop-filter: blur(9px);
+    }
+
+    .schedule-card,
+    .puzzle {
+      backdrop-filter: blur(10px);
+    }
+
+    .schedule-card {
+      transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease;
+    }
+
+    .schedule-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(182,157,99,.40);
+      box-shadow: 0 18px 38px rgba(51,58,46,.11);
+    }
+
+    .puzzle {
+      position: relative;
+      overflow: hidden;
+      transition: transform .32s ease, box-shadow .32s ease, border-color .32s ease;
+    }
+
+    .puzzle:hover {
+      transform: translateY(-2px);
+      border-color: rgba(182,157,99,.38);
+      box-shadow: 0 24px 60px rgba(44,52,38,.14);
+    }
+
     .puzzle.solved-glow {
-      animation: solvedGlow 1400ms ease-out 1;
+      animation: solvedGlow 1700ms ease-out 1;
     }
 
     @keyframes solvedGlow {
-      0% {
-        box-shadow: 0 18px 46px rgba(44,52,38,.10);
-      }
-      35% {
+      0% { box-shadow: 0 18px 46px rgba(44,52,38,.10); }
+      28% {
         box-shadow:
-          0 0 0 1px rgba(182,157,99,.28),
-          0 0 52px rgba(182,157,99,.44),
-          0 18px 46px rgba(44,52,38,.10);
-        transform: translateY(-1px);
+          0 0 0 1px rgba(182,157,99,.44),
+          0 0 82px rgba(244,223,155,.62),
+          0 22px 62px rgba(44,52,38,.16);
+        transform: translateY(-3px) scale(1.006);
       }
-      100% {
-        box-shadow: 0 18px 46px rgba(44,52,38,.10);
-        transform: translateY(0);
+      100% { box-shadow: 0 18px 46px rgba(44,52,38,.10); transform: translateY(0) scale(1); }
+    }
+
+    .solution-box.revealed {
+      animation: letterReveal 900ms cubic-bezier(.2,.8,.2,1) both;
+    }
+
+    @keyframes letterReveal {
+      0% { transform: translateY(8px) scale(.88); box-shadow: 0 0 0 rgba(244,223,155,0); }
+      45% { transform: translateY(-4px) scale(1.08); box-shadow: 0 0 30px rgba(244,223,155,.58); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    .cell input:focus {
+      background: radial-gradient(circle at 50% 45%, rgba(255,244,203,.82), rgba(223,232,215,.66));
+      box-shadow: inset 0 0 0 2px var(--sage), 0 0 18px rgba(244,223,155,.34);
+    }
+
+    .marker {
+      box-shadow: 0 0 14px rgba(182,157,99,.25);
+    }
+
+
+    .final-reveal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      overflow: hidden;
+      background: #030504;
+      transition: opacity 900ms ease, visibility 900ms ease;
+    }
+
+    .final-reveal.is-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .final-reveal__darkness {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(10, 14, 10, .35), rgba(0, 0, 0, .98) 62%),
+        linear-gradient(180deg, rgba(0, 0, 0, .96), rgba(3, 5, 4, 1));
+      opacity: 1;
+      animation: finalDarkPulse 4.8s ease-in-out infinite;
+    }
+
+    .final-reveal__spotlight {
+      position: absolute;
+      top: -20%;
+      width: 34vw;
+      height: 150vh;
+      transform-origin: top center;
+      opacity: 0;
+      filter: blur(10px);
+      mix-blend-mode: screen;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 239, 186, .64),
+        rgba(255, 222, 134, .20) 44%,
+        rgba(255, 222, 134, 0) 78%
+      );
+      clip-path: polygon(44% 0%, 56% 0%, 100% 100%, 0% 100%);
+    }
+
+    .final-reveal.is-open .final-reveal__spotlight {
+      animation: spotlightReveal 4.2s cubic-bezier(.2, .8, .2, 1) forwards,
+                 spotlightSweep 7.2s ease-in-out 4.2s infinite alternate;
+    }
+
+    .final-reveal__spotlight--left {
+      left: 12%;
+      transform: rotate(18deg);
+    }
+
+    .final-reveal__spotlight--right {
+      right: 12%;
+      transform: rotate(-18deg);
+      animation-delay: .65s, 4.85s !important;
+    }
+
+    .final-reveal__content {
+      position: relative;
+      width: min(920px, calc(100vw - 28px));
+      height: min(720px, calc(100vh - 34px));
+      display: grid;
+      grid-template-rows: 1fr auto;
+      align-items: end;
+      border: 1px solid rgba(255, 232, 164, .22);
+      border-radius: 30px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(255, 224, 139, .14), transparent 28rem),
+        linear-gradient(180deg, rgba(9, 13, 11, .34), rgba(1, 2, 2, .94));
+      box-shadow:
+        0 0 120px rgba(255, 220, 130, .18),
+        0 30px 100px rgba(0, 0, 0, .70);
+      transform: translateY(22px) scale(.96);
+      opacity: 0;
+    }
+
+    .final-reveal.is-open .final-reveal__content {
+      animation: finalContentIn 1.4s cubic-bezier(.2, .8, .2, 1) .35s forwards;
+    }
+
+    #final-church-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .final-reveal__text {
+      position: relative;
+      z-index: 2;
+      padding: 0 clamp(20px, 4vw, 44px) clamp(22px, 4vw, 42px);
+      text-align: center;
+      color: #fff8df;
+      text-shadow: 0 2px 18px rgba(0, 0, 0, .85);
+      background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .62) 44%, rgba(0, 0, 0, .78));
+    }
+
+    .final-reveal__kicker {
+      margin: 0 0 8px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: .86rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(255, 236, 184, .86);
+    }
+
+    .final-reveal__text h2 {
+      margin: 0;
+      font-size: clamp(2.4rem, 8vw, 5.8rem);
+      line-height: .95;
+      color: #ffe9a8;
+      letter-spacing: .08em;
+      text-shadow:
+        0 0 18px rgba(255, 228, 154, .72),
+        0 0 60px rgba(255, 209, 112, .32),
+        0 2px 22px rgba(0, 0, 0, .92);
+    }
+
+    .final-reveal__text p {
+      margin: 12px auto 0;
+      max-width: 680px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: clamp(1rem, 2.2vw, 1.22rem);
+      line-height: 1.55;
+      color: rgba(255, 251, 234, .93);
+    }
+
+    .final-reveal__redirect {
+      margin-top: 16px !important;
+      color: rgba(255, 236, 184, .86) !important;
+      font-size: .96rem !important;
+    }
+
+    @keyframes finalDarkPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .86; }
+    }
+
+    @keyframes spotlightReveal {
+      0% { opacity: 0; transform: rotate(var(--spot-start, 18deg)) scaleX(.55); }
+      35% { opacity: .72; }
+      100% { opacity: .42; }
+    }
+
+    @keyframes spotlightSweep {
+      0% { translate: -2vw 0; opacity: .32; }
+      100% { translate: 2vw 0; opacity: .52; }
+    }
+
+    @keyframes finalContentIn {
+      0% { transform: translateY(22px) scale(.96); opacity: 0; filter: blur(10px); }
+      100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
+    }
+
+    @media (max-width: 680px) {
+      .final-reveal__content {
+        height: min(700px, calc(100vh - 20px));
+        border-radius: 22px;
+      }
+
+      .final-reveal__spotlight {
+        width: 52vw;
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      #three-bg {
-        display: none;
-      }
-
-      .puzzle.solved-glow {
-        animation: none;
+      #lumi-three { display: none; }
+      .puzzle, .schedule-card, .puzzle.solved-glow, .solution-box.revealed {
+        animation: none !important;
+        transition: none !important;
       }
     }
 
@@ -491,10 +741,25 @@
       input { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"></script>
 </head>
 <body>
-  <canvas id="three-bg" aria-hidden="true"></canvas>
+
+  <div id="final-reveal" class="final-reveal" aria-hidden="true">
+    <div class="final-reveal__darkness"></div>
+    <div class="final-reveal__spotlight final-reveal__spotlight--left"></div>
+    <div class="final-reveal__spotlight final-reveal__spotlight--right"></div>
+    <div class="final-reveal__content" role="dialog" aria-modal="true" aria-labelledby="final-reveal-title">
+      <canvas id="final-church-canvas" aria-hidden="true"></canvas>
+      <div class="final-reveal__text">
+        <p class="final-reveal__kicker">Der letzte Hinweis ist gelöst</p>
+        <h2 id="final-reveal-title">LUMINISCENCE</h2>
+        <p>Am 22. Juli wartet im Michel ein Abend aus Licht und Klang auf dich.</p>
+        <p class="final-reveal__redirect">Weiterleitung in <strong id="final-countdown">20</strong> Sekunden …</p>
+      </div>
+    </div>
+  </div>
+  <canvas id="lumi-three" aria-hidden="true"></canvas>
+  <div class="lumi-overlay" aria-hidden="true"></div>
   <main class="app">
     <header>
       <svg class="leaf" viewBox="0 0 120 160" aria-hidden="true">
@@ -932,6 +1197,35 @@
     }
 
 
+    function celebratePuzzle(puzzleId) {
+      const puzzleElement = document.getElementById(`puzzle-${puzzleId}`);
+      if (puzzleElement) {
+        puzzleElement.classList.remove("solved-glow");
+        void puzzleElement.offsetWidth;
+        puzzleElement.classList.add("solved-glow");
+      }
+
+      const boxes = document.querySelectorAll(`#solution-${puzzleId} .solution-box`);
+      boxes.forEach((box, index) => {
+        box.classList.remove("revealed");
+        void box.offsetWidth;
+        box.style.animationDelay = `${index * 45}ms`;
+        box.classList.add("revealed");
+      });
+
+      if (window.lumi3d && typeof window.lumi3d.celebrate === "function") {
+        window.lumi3d.celebrate(puzzleId);
+      }
+
+      if (puzzleId === "luminiscence") {
+        window.setTimeout(() => {
+          if (window.finalReveal && typeof window.finalReveal.open === "function") {
+            window.finalReveal.open();
+          }
+        }, 900);
+      }
+    }
+
     function markSolvedOnce(puzzleId) {
       const key = `hinweisraetsel-solved-${puzzleId}`;
       if (sessionStorage.getItem(key) === "1") return;
@@ -1013,166 +1307,616 @@
       }
     }
 
-
-    let threeEffects = null;
-
-    function initThreeEffects() {
-      const canvas = document.getElementById("three-bg");
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-      if (!canvas || reduceMotion || !window.THREE) {
-        return null;
-      }
-
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-      camera.position.z = 34;
-
-      const renderer = new THREE.WebGLRenderer({
-        canvas,
-        alpha: true,
-        antialias: true
-      });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      renderer.setSize(window.innerWidth, window.innerHeight);
-
-      const ambient = new THREE.AmbientLight(0xffffff, 0.25);
-      scene.add(ambient);
-
-      const pointLight = new THREE.PointLight(0xf4df9b, 1.4, 60);
-      pointLight.position.set(0, 0, 18);
-      scene.add(pointLight);
-
-      const particles = [];
-      const particleCount = window.innerWidth < 600 ? 70 : 120;
-      const geometry = new THREE.SphereGeometry(0.045, 10, 10);
-      const material = new THREE.MeshBasicMaterial({
-        color: 0xd8c98a,
-        transparent: true,
-        opacity: 0.58
-      });
-
-      for (let i = 0; i < particleCount; i++) {
-        const mesh = new THREE.Mesh(geometry, material.clone());
-        mesh.position.set(
-          (Math.random() - 0.5) * 42,
-          (Math.random() - 0.5) * 30,
-          (Math.random() - 0.5) * 12
-        );
-        mesh.userData = {
-          baseX: mesh.position.x,
-          baseY: mesh.position.y,
-          speed: 0.18 + Math.random() * 0.42,
-          phase: Math.random() * Math.PI * 2,
-          radius: 0.18 + Math.random() * 0.55
-        };
-        mesh.material.opacity = 0.16 + Math.random() * 0.38;
-        particles.push(mesh);
-        scene.add(mesh);
-      }
-
-      const burstGroup = new THREE.Group();
-      scene.add(burstGroup);
-
-      let burstStart = 0;
-
-      function resize() {
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-        camera.aspect = width / height;
-        camera.updateProjectionMatrix();
-        renderer.setSize(width, height);
-      }
-
-      window.addEventListener("resize", resize);
-
-      function createBurst() {
-        burstGroup.clear();
-        burstStart = performance.now();
-
-        const burstMaterial = new THREE.MeshBasicMaterial({
-          color: 0xf4df9b,
-          transparent: true,
-          opacity: 0.95
-        });
-
-        for (let i = 0; i < 34; i++) {
-          const spark = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 10), burstMaterial.clone());
-          const angle = (i / 34) * Math.PI * 2;
-          const speed = 2.2 + Math.random() * 2.4;
-          spark.position.set(0, 0, 10);
-          spark.userData = {
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            vz: (Math.random() - 0.5) * 1.2
-          };
-          burstGroup.add(spark);
-        }
-      }
-
-      function animate(now) {
-        const t = now * 0.001;
-
-        particles.forEach((mesh, index) => {
-          const d = mesh.userData;
-          mesh.position.x = d.baseX + Math.sin(t * d.speed + d.phase) * d.radius;
-          mesh.position.y = d.baseY + Math.cos(t * d.speed * 0.82 + d.phase) * d.radius;
-          mesh.rotation.z += 0.002 + index * 0.000001;
-        });
-
-        pointLight.intensity = 1.05 + Math.sin(t * 0.9) * 0.25;
-
-        if (burstStart) {
-          const elapsed = (now - burstStart) / 1000;
-          burstGroup.children.forEach((spark) => {
-            spark.position.x += spark.userData.vx * 0.035;
-            spark.position.y += spark.userData.vy * 0.035;
-            spark.position.z += spark.userData.vz * 0.018;
-            spark.material.opacity = Math.max(0, 0.95 - elapsed * 0.9);
-          });
-
-          if (elapsed > 1.1) {
-            burstGroup.clear();
-            burstStart = 0;
-          }
-        }
-
-        renderer.render(scene, camera);
-        requestAnimationFrame(animate);
-      }
-
-      requestAnimationFrame(animate);
-
-      return {
-        burst: createBurst,
-        destroy() {
-          window.removeEventListener("resize", resize);
-          renderer.dispose();
-        }
-      };
-    }
-
-    function celebratePuzzle(puzzleId) {
-      const puzzleElement = document.getElementById(`puzzle-${puzzleId}`);
-      if (puzzleElement) {
-        puzzleElement.classList.remove("solved-glow");
-        void puzzleElement.offsetWidth;
-        puzzleElement.classList.add("solved-glow");
-      }
-
-      if (threeEffects) {
-        threeEffects.burst();
-      }
-    }
-
-
     if (PREVIEW) {
       document.getElementById("preview").classList.add("show");
     }
 
-    threeEffects = initThreeEffects();
     renderSchedule();
     renderPuzzles();
   </script>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./node_modules/three/build/three.module.js",
+      "three/addons/": "./node_modules/three/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+
+    const canvas = document.getElementById("lumi-three");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (canvas && !reduce) {
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0xf8f7f1, 0.018);
+
+      const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 120);
+      camera.position.set(0, 2.2, 36);
+      camera.lookAt(0, 1.2, 0);
+
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
+      renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.08;
+
+      const composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+      const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.62, 0.72, 0.12);
+      composer.addPass(bloom);
+
+      const clock = new THREE.Clock();
+      const mouse = new THREE.Vector2();
+
+      addEventListener("pointermove", (e) => {
+        mouse.x = (e.clientX / innerWidth - 0.5) * 2;
+        mouse.y = (e.clientY / innerHeight - 0.5) * 2;
+      }, { passive: true });
+
+      scene.add(new THREE.AmbientLight(0xfffbef, 0.72));
+
+      const warm = new THREE.PointLight(0xffdf8d, 5.8, 92, 1.65);
+      warm.position.set(0, 8, 18);
+      scene.add(warm);
+
+      const green = new THREE.PointLight(0x9bb58a, 1.6, 44, 1.8);
+      green.position.set(-12, -4, 10);
+      scene.add(green);
+
+      const rose = new THREE.PointLight(0xd0a7c5, 1.05, 42, 1.8);
+      rose.position.set(12, -4, 10);
+      scene.add(rose);
+
+      const root = new THREE.Group();
+      root.position.y = -1.8;
+      scene.add(root);
+
+      const frameMat = new THREE.MeshStandardMaterial({
+        color: 0x536348,
+        roughness: 0.56,
+        metalness: 0.08,
+        emissive: 0x23301f,
+        emissiveIntensity: 0.08
+      });
+
+      function glass(color, opacity, glow) {
+        return new THREE.MeshPhysicalMaterial({
+          color,
+          roughness: 0.30,
+          metalness: 0.02,
+          transmission: 0.18,
+          transparent: true,
+          opacity,
+          side: THREE.DoubleSide,
+          emissive: color,
+          emissiveIntensity: glow,
+          clearcoat: 0.55,
+          clearcoatRoughness: 0.22
+        });
+      }
+
+      const windowGroup = new THREE.Group();
+      windowGroup.position.set(0, 1.45, -7.8);
+      windowGroup.rotation.x = -0.05;
+      root.add(windowGroup);
+
+      const mats = [
+        glass(0xf6d98b, .58, .34),
+        glass(0x9fbf8c, .52, .24),
+        glass(0x8bb0c9, .42, .18),
+        glass(0xd9a4b9, .38, .16),
+        glass(0xfff0bc, .50, .30)
+      ];
+
+      const paneW = 1.22, paneH = 1.42, gap = .12, cols = 7, rows = 7;
+      const panes = [];
+
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const dx = (x - (cols - 1) / 2) * (paneW + gap);
+          const dy = y * (paneH + gap) - 1.2;
+          const archLimit = 3.7 - Math.abs(dx) * .42;
+          if (dy > archLimit + 1.6) continue;
+
+          const pane = new THREE.Mesh(new THREE.PlaneGeometry(paneW, paneH), mats[(x + y * 2) % mats.length].clone());
+          pane.position.set(dx, dy, 0);
+          pane.userData = { base: pane.material.opacity, phase: Math.random() * Math.PI * 2 };
+          panes.push(pane);
+          windowGroup.add(pane);
+
+          const v = new THREE.Mesh(new THREE.BoxGeometry(.045, paneH + .08, .055), frameMat);
+          v.position.set(dx - paneW / 2, dy, .035);
+          windowGroup.add(v);
+
+          const h = new THREE.Mesh(new THREE.BoxGeometry(paneW + .08, .045, .055), frameMat);
+          h.position.set(dx, dy - paneH / 2, .035);
+          windowGroup.add(h);
+        }
+      }
+
+      const sideGeo = new THREE.BoxGeometry(.13, 10.2, .18);
+      const left = new THREE.Mesh(sideGeo, frameMat);
+      left.position.set(-4.95, 2.9, .09);
+      const right = left.clone();
+      right.position.x = 4.95;
+      const bottom = new THREE.Mesh(new THREE.BoxGeometry(10.05, .15, .18), frameMat);
+      bottom.position.set(0, -2.25, .09);
+
+      const archCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(-4.95, 5.4, .08),
+        new THREE.Vector3(-3.4, 8.0, .08),
+        new THREE.Vector3(0, 9.0, .08),
+        new THREE.Vector3(3.4, 8.0, .08),
+        new THREE.Vector3(4.95, 5.4, .08)
+      ]);
+      const arch = new THREE.Mesh(new THREE.TubeGeometry(archCurve, 52, .075, 10, false), frameMat);
+      windowGroup.add(left, right, bottom, arch);
+
+      const dome = new THREE.Mesh(
+        new THREE.SphereGeometry(18, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2),
+        new THREE.MeshBasicMaterial({ color: 0xffe8a4, transparent: true, opacity: .075, side: THREE.BackSide, depthWrite: false })
+      );
+      dome.position.set(0, -4.8, -5);
+      dome.rotation.x = Math.PI;
+      root.add(dome);
+
+      const floor = new THREE.Mesh(
+        new THREE.CircleGeometry(13, 72),
+        new THREE.MeshBasicMaterial({ color: 0xffe7a6, transparent: true, opacity: .10, side: THREE.DoubleSide, depthWrite: false })
+      );
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.set(0, -5.05, 0);
+      root.add(floor);
+
+      const rays = new THREE.Group();
+      const rayMat = new THREE.MeshBasicMaterial({
+        color: 0xffe6a3,
+        transparent: true,
+        opacity: .10,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+
+      for (let i = 0; i < 9; i++) {
+        const ray = new THREE.Mesh(new THREE.PlaneGeometry(.95 + Math.random() * .7, 18 + Math.random() * 8), rayMat.clone());
+        ray.position.set((i - 4) * 1.08, .6, -1.6 + Math.random() * 1.6);
+        ray.rotation.z = (i - 4) * .08;
+        ray.rotation.x = .72 + Math.random() * .12;
+        ray.userData = { phase: Math.random() * Math.PI * 2, base: ray.material.opacity };
+        rays.add(ray);
+      }
+      root.add(rays);
+
+      const pCount = innerWidth < 700 ? 140 : 230;
+      const pos = new Float32Array(pCount * 3);
+      const phase = new Float32Array(pCount);
+      for (let i = 0; i < pCount; i++) {
+        pos[i * 3] = (Math.random() - .5) * 30;
+        pos[i * 3 + 1] = (Math.random() - .5) * 19;
+        pos[i * 3 + 2] = (Math.random() - .5) * 22;
+        phase[i] = Math.random() * Math.PI * 2;
+      }
+      const pGeo = new THREE.BufferGeometry();
+      pGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({
+        color: 0xf6df9b,
+        size: .075,
+        transparent: true,
+        opacity: .66,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      }));
+      scene.add(particles);
+
+      const bursts = [];
+
+      function celebrate(kind = "default") {
+        const colors = { leuchten: 0xffe39b, klang: 0xb6d0ff, michel: 0xfff0bc, luminiscence: 0xf8dfff, default: 0xffe39b };
+        const mat = new THREE.MeshBasicMaterial({
+          color: colors[kind] || colors.default,
+          transparent: true,
+          opacity: 1,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        });
+        const burst = new THREE.Group();
+        for (let i = 0; i < 72; i++) {
+          const s = new THREE.Mesh(new THREE.SphereGeometry(.055 + Math.random() * .045, 10, 10), mat.clone());
+          const a = Math.random() * Math.PI * 2;
+          const e = (Math.random() - .18) * Math.PI * .42;
+          const speed = 2.6 + Math.random() * 5.5;
+          s.position.set(0, 3, 4);
+          s.userData = { vx: Math.cos(a) * Math.cos(e) * speed, vy: Math.sin(e) * speed + 1.6, vz: Math.sin(a) * Math.cos(e) * speed, life: 1 };
+          burst.add(s);
+        }
+        scene.add(burst);
+        bursts.push(burst);
+        bloom.strength = kind === "luminiscence" ? 1.48 : 1.12;
+        warm.intensity = kind === "luminiscence" ? 8.6 : 7.1;
+      }
+
+      window.lumi3d = { celebrate };
+
+      function resize() {
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+        composer.setSize(innerWidth, innerHeight);
+        bloom.setSize(innerWidth, innerHeight);
+      }
+      addEventListener("resize", resize);
+
+      function animate() {
+        const elapsed = clock.getElapsedTime();
+        const delta = clock.getDelta();
+
+        root.rotation.y = Math.sin(elapsed * .18) * .045 + mouse.x * .025;
+        root.rotation.x = Math.sin(elapsed * .13) * .018 - mouse.y * .018;
+        dome.material.opacity = .067 + Math.sin(elapsed * .7) * .012;
+        floor.material.opacity = .088 + Math.sin(elapsed * .9) * .026;
+
+        warm.position.x = Math.sin(elapsed * .33) * 2.2;
+        warm.position.y = 7.2 + Math.cos(elapsed * .25) * .9;
+        warm.intensity += (5.8 - warm.intensity) * .02;
+        bloom.strength += (.62 - bloom.strength) * .026;
+
+        panes.forEach((pane) => {
+          pane.material.opacity = pane.userData.base + Math.sin(elapsed * .9 + pane.userData.phase) * .035;
+        });
+
+        rays.children.forEach((ray, i) => {
+          ray.material.opacity = ray.userData.base + Math.sin(elapsed * .55 + ray.userData.phase) * .045;
+          ray.rotation.z += Math.sin(elapsed * .24 + i) * .0002;
+        });
+
+        const arr = particles.geometry.attributes.position.array;
+        for (let i = 0; i < pCount; i++) {
+          arr[i * 3 + 1] += Math.sin(elapsed * .55 + phase[i]) * .002 + .003;
+          arr[i * 3] += Math.cos(elapsed * .22 + phase[i]) * .003;
+          if (arr[i * 3 + 1] > 11) {
+            arr[i * 3 + 1] = -10;
+            arr[i * 3] = (Math.random() - .5) * 30;
+          }
+        }
+        particles.geometry.attributes.position.needsUpdate = true;
+        particles.rotation.y = elapsed * .012;
+
+        for (let b = bursts.length - 1; b >= 0; b--) {
+          const burst = bursts[b];
+          let living = 0;
+          burst.children.forEach((s) => {
+            s.userData.vy -= 4.1 * delta;
+            s.position.x += s.userData.vx * delta;
+            s.position.y += s.userData.vy * delta;
+            s.position.z += s.userData.vz * delta;
+            s.userData.life -= delta * .72;
+            s.material.opacity = Math.max(0, s.userData.life);
+            s.scale.setScalar(Math.max(.2, s.userData.life));
+            if (s.userData.life > 0) living++;
+          });
+          if (!living) {
+            scene.remove(burst);
+            bursts.splice(b, 1);
+          }
+        }
+
+        composer.render();
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+    } else {
+      window.lumi3d = { celebrate() {} };
+    }
+  
+    function initFinalReveal() {
+      const modal = document.getElementById("final-reveal");
+      const canvas = document.getElementById("final-church-canvas");
+      const countdown = document.getElementById("final-countdown");
+      const targetUrl = "https://luminiscence.de/de/hamburg/";
+
+      if (!modal || !canvas) {
+        return { open() { location.href = targetUrl; } };
+      }
+
+      let initialized = false;
+      let renderer, scene, camera, composer, bloom, church, clock;
+      let redirectTimer = null;
+      let countdownTimer = null;
+      let remaining = 20;
+
+      function createChurchModel() {
+        const root = new THREE.Group();
+
+        const stone = new THREE.MeshStandardMaterial({
+          color: 0xb9b09a,
+          roughness: 0.72,
+          metalness: 0.03,
+          emissive: 0x1a1711,
+          emissiveIntensity: 0.06
+        });
+
+        const darkStone = new THREE.MeshStandardMaterial({
+          color: 0x5e6657,
+          roughness: 0.76,
+          metalness: 0.02
+        });
+
+        const roof = new THREE.MeshStandardMaterial({
+          color: 0x2f4c42,
+          roughness: 0.48,
+          metalness: 0.08,
+          emissive: 0x07120f,
+          emissiveIntensity: 0.10
+        });
+
+        const glassGold = new THREE.MeshPhysicalMaterial({
+          color: 0xffd783,
+          roughness: 0.20,
+          transmission: 0.12,
+          transparent: true,
+          opacity: 0.72,
+          emissive: 0xffbb54,
+          emissiveIntensity: 0.82,
+          side: THREE.DoubleSide
+        });
+
+        const glassBlue = new THREE.MeshPhysicalMaterial({
+          color: 0x89b6d8,
+          roughness: 0.24,
+          transparent: true,
+          opacity: 0.52,
+          emissive: 0x477ea7,
+          emissiveIntensity: 0.40,
+          side: THREE.DoubleSide
+        });
+
+        const nave = new THREE.Mesh(new THREE.BoxGeometry(5.8, 3.1, 7.6), stone);
+        nave.position.set(0, -0.55, 0);
+        root.add(nave);
+
+        const roofShape = new THREE.Shape();
+        roofShape.moveTo(-3.25, 0);
+        roofShape.lineTo(0, 1.55);
+        roofShape.lineTo(3.25, 0);
+        roofShape.lineTo(-3.25, 0);
+
+        const roofGeo = new THREE.ExtrudeGeometry(roofShape, { depth: 8.05, bevelEnabled: false });
+        roofGeo.center();
+        const naveRoof = new THREE.Mesh(roofGeo, roof);
+        naveRoof.position.set(0, 1.2, 0);
+        naveRoof.rotation.y = Math.PI;
+        root.add(naveRoof);
+
+        const tower = new THREE.Mesh(new THREE.BoxGeometry(2.2, 6.3, 2.25), stone);
+        tower.position.set(0, 1.0, 4.65);
+        root.add(tower);
+
+        const spireShape = new THREE.ConeGeometry(1.55, 3.2, 4);
+        const spire = new THREE.Mesh(spireShape, roof);
+        spire.position.set(0, 5.75, 4.65);
+        spire.rotation.y = Math.PI / 4;
+        root.add(spire);
+
+        const crossMat = new THREE.MeshBasicMaterial({ color: 0xffe8a2 });
+        const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.86, 0.08), crossMat);
+        crossV.position.set(0, 7.75, 4.65);
+        const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.07, 0.07), crossMat);
+        crossH.position.set(0, 7.95, 4.65);
+        root.add(crossV, crossH);
+
+        function addWindow(x, y, z, mat, scale = 1) {
+          const group = new THREE.Group();
+          const arch = new THREE.Mesh(new THREE.CapsuleGeometry(0.32 * scale, 0.82 * scale, 8, 16), mat);
+          arch.rotation.z = Math.PI;
+          arch.scale.x = 0.72;
+          group.add(arch);
+
+          const frame = new THREE.Mesh(new THREE.TorusGeometry(0.31 * scale, 0.025 * scale, 8, 24), darkStone);
+          frame.scale.y = 1.55;
+          frame.position.z = 0.012;
+          group.add(frame);
+
+          group.position.set(x, y, z);
+          root.add(group);
+          return group;
+        }
+
+        for (const x of [-2.1, 0, 2.1]) {
+          const w = addWindow(x, 0.12, 3.84, x === 0 ? glassGold : glassBlue, 1.05);
+          w.rotation.y = 0;
+        }
+
+        for (const x of [-2.95, 2.95]) {
+          for (const z of [-2.2, 0.2]) {
+            const w = addWindow(x, 0, z, glassBlue, 0.85);
+            w.rotation.y = x < 0 ? Math.PI / 2 : -Math.PI / 2;
+          }
+        }
+
+        const towerWindow = addWindow(0, 2.45, 5.79, glassGold, 0.82);
+        towerWindow.scale.y = 1.12;
+
+        const doorMat = new THREE.MeshStandardMaterial({
+          color: 0x3c2b1e,
+          roughness: 0.62,
+          metalness: 0.05
+        });
+        const door = new THREE.Mesh(new THREE.BoxGeometry(0.92, 1.6, 0.08), doorMat);
+        door.position.set(0, -1.28, 5.82);
+        root.add(door);
+
+        const base = new THREE.Mesh(new THREE.BoxGeometry(6.3, 0.34, 8.2), darkStone);
+        base.position.set(0, -2.28, 0);
+        root.add(base);
+
+        root.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = false;
+          }
+        });
+
+        root.scale.setScalar(1.18);
+        return root;
+      }
+
+      function init() {
+        if (initialized) return;
+        initialized = true;
+
+        scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x030504, 0.026);
+
+        camera = new THREE.PerspectiveCamera(42, 1, 0.1, 120);
+        camera.position.set(0, 2.2, 20);
+        camera.lookAt(0, 1.2, 0);
+
+        renderer = new THREE.WebGLRenderer({
+          canvas,
+          alpha: true,
+          antialias: true,
+          powerPreference: "high-performance"
+        });
+        renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.05;
+
+        composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene, camera));
+        bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 1.25, 0.82, 0.08);
+        composer.addPass(bloom);
+
+        clock = new THREE.Clock();
+
+        scene.add(new THREE.AmbientLight(0x11130f, 0.95));
+
+        const leftSpot = new THREE.SpotLight(0xffe6a8, 14, 42, Math.PI / 7, 0.58, 1.2);
+        leftSpot.position.set(-8.5, 9, 11);
+        leftSpot.target.position.set(0, 0.8, 0);
+        scene.add(leftSpot, leftSpot.target);
+
+        const rightSpot = new THREE.SpotLight(0xf7d7ff, 8.6, 40, Math.PI / 8, 0.64, 1.35);
+        rightSpot.position.set(8.5, 8, 10);
+        rightSpot.target.position.set(0, 1.8, 0);
+        scene.add(rightSpot, rightSpot.target);
+
+        const backGlow = new THREE.PointLight(0xffc86f, 8, 32, 1.7);
+        backGlow.position.set(0, 5.5, -6);
+        scene.add(backGlow);
+
+        church = createChurchModel();
+        church.position.set(0, -0.6, 0);
+        scene.add(church);
+
+        const floor = new THREE.Mesh(
+          new THREE.CircleGeometry(9, 80),
+          new THREE.MeshBasicMaterial({
+            color: 0xffdb8e,
+            transparent: true,
+            opacity: 0.12,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          })
+        );
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = -3.05;
+        scene.add(floor);
+
+        const particles = new THREE.Group();
+        const sparkMat = new THREE.MeshBasicMaterial({
+          color: 0xffe4a3,
+          transparent: true,
+          opacity: 0.72,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        });
+        for (let i = 0; i < 110; i++) {
+          const s = new THREE.Mesh(new THREE.SphereGeometry(0.025 + Math.random() * 0.035, 8, 8), sparkMat.clone());
+          s.position.set((Math.random() - 0.5) * 13, Math.random() * 9 - 2.6, (Math.random() - 0.5) * 9);
+          s.userData = { phase: Math.random() * Math.PI * 2, speed: 0.5 + Math.random() * 0.8 };
+          particles.add(s);
+        }
+        scene.add(particles);
+
+        function resize() {
+          const rect = canvas.getBoundingClientRect();
+          const width = Math.max(1, rect.width);
+          const height = Math.max(1, rect.height);
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+          renderer.setSize(width, height, false);
+          composer.setSize(width, height);
+          bloom.setSize(width, height);
+        }
+
+        window.addEventListener("resize", resize);
+        resize();
+
+        function animate() {
+          const t = clock.getElapsedTime();
+
+          church.rotation.y = t * 0.34;
+          church.rotation.x = Math.sin(t * 0.35) * 0.025;
+
+          leftSpot.position.x = -8.5 + Math.sin(t * 0.55) * 1.2;
+          rightSpot.position.x = 8.5 + Math.cos(t * 0.48) * 1.2;
+          leftSpot.intensity = 12 + Math.sin(t * 0.9) * 2.2;
+          rightSpot.intensity = 7.5 + Math.cos(t * 0.7) * 1.8;
+          backGlow.intensity = 7.2 + Math.sin(t * 1.1) * 1.8;
+
+          particles.children.forEach((s) => {
+            s.position.y += 0.008 * s.userData.speed;
+            s.position.x += Math.sin(t * s.userData.speed + s.userData.phase) * 0.004;
+            s.material.opacity = 0.35 + Math.sin(t * 1.5 + s.userData.phase) * 0.25;
+            if (s.position.y > 7.4) s.position.y = -2.8;
+          });
+
+          composer.render();
+          requestAnimationFrame(animate);
+        }
+
+        animate();
+      }
+
+      function open() {
+        init();
+        modal.classList.add("is-open");
+        modal.setAttribute("aria-hidden", "false");
+
+        remaining = 20;
+        if (countdown) countdown.textContent = remaining;
+
+        clearInterval(countdownTimer);
+        countdownTimer = setInterval(() => {
+          remaining -= 1;
+          if (countdown) countdown.textContent = Math.max(0, remaining);
+          if (remaining <= 0) clearInterval(countdownTimer);
+        }, 1000);
+
+        clearTimeout(redirectTimer);
+        redirectTimer = setTimeout(() => {
+          window.location.href = targetUrl;
+        }, 20000);
+      }
+
+      return { open };
+    }
+
+    window.finalReveal = initFinalReveal();
+
+
+  </script>
+
 </body>
 </html>
