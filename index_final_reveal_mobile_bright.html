@@ -1,0 +1,1875 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hinweisrätsel bis zum 22. Juli</title>
+  <style>
+    :root {
+      --bg: #f8f7f1;
+      --paper: #fffdf8;
+      --ink: #1f251f;
+      --muted: #68715f;
+      --sage: #596b4d;
+      --sage-2: #dfe8d7;
+      --sage-3: #eef3ea;
+      --line: #2e342c;
+      --gold: #b69d63;
+      --danger: #b14545;
+      --ok: #4d7c50;
+      --cell: clamp(28px, 5.8vw, 42px);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+
+
+    #lumi-three {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      opacity: .96;
+    }
+
+    .lumi-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 4%, rgba(255,235,174,.28), transparent 28rem),
+        radial-gradient(circle at 10% 20%, rgba(153,177,132,.22), transparent 24rem),
+        radial-gradient(circle at 90% 18%, rgba(214,176,206,.14), transparent 22rem),
+        linear-gradient(180deg, rgba(248,247,241,0), rgba(248,247,241,.85) 74%);
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+    }
+
+    header::before {
+      content: "";
+      position: absolute;
+      inset: 20px 0 auto;
+      height: 240px;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 8%, rgba(255,247,215,.78), transparent 30rem);
+      filter: blur(2px);
+    }
+
+    h1 {
+      text-shadow: 0 2px 0 rgba(255,255,255,.7), 0 16px 48px rgba(89,107,77,.18);
+    }
+
+    .subtitle {
+      background: rgba(255,253,248,.58);
+      border: 1px solid rgba(255,255,255,.62);
+      border-radius: 999px;
+      padding: 10px 18px;
+      box-shadow: 0 12px 34px rgba(51,58,46,.07);
+      backdrop-filter: blur(9px);
+    }
+
+    .schedule-card,
+    .puzzle {
+      backdrop-filter: blur(10px);
+    }
+
+    .schedule-card {
+      transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease;
+    }
+
+    .schedule-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(182,157,99,.40);
+      box-shadow: 0 18px 38px rgba(51,58,46,.11);
+    }
+
+    .puzzle {
+      position: relative;
+      overflow: hidden;
+      transition: transform .32s ease, box-shadow .32s ease, border-color .32s ease;
+    }
+
+    .puzzle:hover {
+      transform: translateY(-2px);
+      border-color: rgba(182,157,99,.38);
+      box-shadow: 0 24px 60px rgba(44,52,38,.14);
+    }
+
+    .puzzle.solved-glow {
+      animation: solvedGlow 1700ms ease-out 1;
+    }
+
+    @keyframes solvedGlow {
+      0% { box-shadow: 0 18px 46px rgba(44,52,38,.10); }
+      28% {
+        box-shadow:
+          0 0 0 1px rgba(182,157,99,.44),
+          0 0 82px rgba(244,223,155,.62),
+          0 22px 62px rgba(44,52,38,.16);
+        transform: translateY(-3px) scale(1.006);
+      }
+      100% { box-shadow: 0 18px 46px rgba(44,52,38,.10); transform: translateY(0) scale(1); }
+    }
+
+    .solution-box.revealed {
+      animation: letterReveal 900ms cubic-bezier(.2,.8,.2,1) both;
+    }
+
+    @keyframes letterReveal {
+      0% { transform: translateY(8px) scale(.88); box-shadow: 0 0 0 rgba(244,223,155,0); }
+      45% { transform: translateY(-4px) scale(1.08); box-shadow: 0 0 30px rgba(244,223,155,.58); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    .cell input:focus {
+      background: radial-gradient(circle at 50% 45%, rgba(255,244,203,.82), rgba(223,232,215,.66));
+      box-shadow: inset 0 0 0 2px var(--sage), 0 0 18px rgba(244,223,155,.34);
+    }
+
+    .marker {
+      box-shadow: 0 0 14px rgba(182,157,99,.25);
+    }
+
+
+    .final-reveal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      overflow: hidden;
+      background: #030504;
+      transition: opacity 900ms ease, visibility 900ms ease;
+    }
+
+    .final-reveal.is-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .final-reveal__darkness {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(10, 14, 10, .35), rgba(0, 0, 0, .98) 62%),
+        linear-gradient(180deg, rgba(0, 0, 0, .96), rgba(3, 5, 4, 1));
+      opacity: 1;
+      animation: finalDarkPulse 4.8s ease-in-out infinite;
+    }
+
+    .final-reveal__spotlight {
+      position: absolute;
+      top: -20%;
+      width: 34vw;
+      height: 150vh;
+      transform-origin: top center;
+      opacity: 0;
+      filter: blur(10px);
+      mix-blend-mode: screen;
+      background: linear-gradient(
+        180deg,
+        rgba(255, 239, 186, .64),
+        rgba(255, 222, 134, .20) 44%,
+        rgba(255, 222, 134, 0) 78%
+      );
+      clip-path: polygon(44% 0%, 56% 0%, 100% 100%, 0% 100%);
+    }
+
+    .final-reveal.is-open .final-reveal__spotlight {
+      animation: spotlightReveal 4.2s cubic-bezier(.2, .8, .2, 1) forwards,
+                 spotlightSweep 7.2s ease-in-out 4.2s infinite alternate;
+    }
+
+    .final-reveal__spotlight--left {
+      left: 12%;
+      transform: rotate(18deg);
+    }
+
+    .final-reveal__spotlight--right {
+      right: 12%;
+      transform: rotate(-18deg);
+      animation-delay: .65s, 4.85s !important;
+    }
+
+    .final-reveal__content {
+      position: relative;
+      width: min(920px, calc(100vw - 28px));
+      height: min(720px, calc(100vh - 34px));
+      display: grid;
+      grid-template-rows: 1fr auto;
+      align-items: end;
+      border: 1px solid rgba(255, 232, 164, .22);
+      border-radius: 30px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 40%, rgba(255, 224, 139, .14), transparent 28rem),
+        linear-gradient(180deg, rgba(9, 13, 11, .34), rgba(1, 2, 2, .94));
+      box-shadow:
+        0 0 120px rgba(255, 220, 130, .18),
+        0 30px 100px rgba(0, 0, 0, .70);
+      transform: translateY(22px) scale(.96);
+      opacity: 0;
+    }
+
+    .final-reveal.is-open .final-reveal__content {
+      animation: finalContentIn 1.4s cubic-bezier(.2, .8, .2, 1) .35s forwards;
+    }
+
+    #final-church-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .final-reveal__text {
+      position: relative;
+      z-index: 2;
+      padding: 0 clamp(20px, 4vw, 44px) clamp(22px, 4vw, 42px);
+      text-align: center;
+      color: #fff8df;
+      text-shadow: 0 2px 18px rgba(0, 0, 0, .85);
+      background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .62) 44%, rgba(0, 0, 0, .78));
+    }
+
+    .final-reveal__kicker {
+      margin: 0 0 8px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: .86rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(255, 236, 184, .86);
+    }
+
+    .final-reveal__text h2 {
+      margin: 0;
+      font-size: clamp(2.4rem, 8vw, 5.8rem);
+      line-height: .95;
+      color: #ffe9a8;
+      letter-spacing: .08em;
+      text-shadow:
+        0 0 18px rgba(255, 228, 154, .72),
+        0 0 60px rgba(255, 209, 112, .32),
+        0 2px 22px rgba(0, 0, 0, .92);
+    }
+
+    .final-reveal__text p {
+      margin: 12px auto 0;
+      max-width: 680px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: clamp(1rem, 2.2vw, 1.22rem);
+      line-height: 1.55;
+      color: rgba(255, 251, 234, .93);
+    }
+
+    .final-reveal__redirect {
+      margin-top: 16px !important;
+      color: rgba(255, 236, 184, .86) !important;
+      font-size: .96rem !important;
+    }
+
+    @keyframes finalDarkPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .86; }
+    }
+
+    @keyframes spotlightReveal {
+      0% { opacity: 0; transform: rotate(var(--spot-start, 18deg)) scaleX(.55); }
+      35% { opacity: .72; }
+      100% { opacity: .42; }
+    }
+
+    @keyframes spotlightSweep {
+      0% { translate: -2vw 0; opacity: .32; }
+      100% { translate: 2vw 0; opacity: .52; }
+    }
+
+    @keyframes finalContentIn {
+      0% { transform: translateY(22px) scale(.96); opacity: 0; filter: blur(10px); }
+      100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
+    }
+
+    @media (max-width: 680px) {
+      .final-reveal__content {
+        height: min(700px, calc(100vh - 20px));
+        border-radius: 22px;
+      }
+
+      .final-reveal__spotlight {
+        width: 52vw;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #lumi-three { display: none; }
+      .puzzle, .schedule-card, .puzzle.solved-glow, .solution-box.revealed {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(223,232,215,.9), transparent 26rem),
+        radial-gradient(circle at 85% 0%, rgba(238,243,234,.85), transparent 24rem),
+        var(--bg);
+    }
+
+    .app {
+      width: min(1100px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 44px;
+    }
+
+    header {
+      position: relative;
+      padding: 26px 18px 18px;
+      text-align: center;
+    }
+
+    .leaf {
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      width: 92px;
+      height: 130px;
+      opacity: .8;
+      pointer-events: none;
+    }
+
+    .hearts {
+      position: absolute;
+      right: 12px;
+      top: 16px;
+      font-size: 34px;
+      color: var(--sage);
+      line-height: .8;
+      transform: rotate(10deg);
+      opacity: .88;
+      pointer-events: none;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--sage);
+      font-size: clamp(2.1rem, 8vw, 4.8rem);
+      letter-spacing: .02em;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      margin: 10px auto 0;
+      max-width: 710px;
+      color: var(--muted);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 1.02rem;
+      line-height: 1.55;
+    }
+
+    .note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: .94rem;
+    }
+
+    .schedule {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 20px 0 22px;
+    }
+
+    .schedule-card {
+      background: rgba(255,253,248,.75);
+      border: 1px solid rgba(89,107,77,.22);
+      border-radius: 18px;
+      padding: 14px 14px 13px;
+      min-height: 98px;
+      box-shadow: 0 10px 26px rgba(51,58,46,.06);
+    }
+
+    .schedule-card strong {
+      display: block;
+      color: var(--sage);
+      font-size: 1.06rem;
+    }
+
+    .schedule-card span {
+      display: block;
+      margin-top: 4px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .status-pill {
+      display: inline-flex !important;
+      margin-top: 10px !important;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: .8rem !important;
+      color: var(--sage);
+      background: var(--sage-3);
+      border: 1px solid rgba(89,107,77,.22);
+    }
+
+    .status-pill.open {
+      color: #fff;
+      background: var(--sage);
+    }
+
+    .preview {
+      display: none;
+      margin: 12px auto 0;
+      max-width: 720px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      color: #4f3f14;
+      background: #fff6d8;
+      border: 1px solid #e5ce83;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: .92rem;
+    }
+
+    .preview.show { display: block; }
+
+    .puzzle {
+      margin-top: 22px;
+      background: rgba(255,253,248,.92);
+      border: 1px solid rgba(89,107,77,.24);
+      border-radius: var(--radius);
+      box-shadow: 0 18px 46px rgba(44,52,38,.10);
+      overflow: hidden;
+    }
+
+    .puzzle-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 20px 22px;
+      border-bottom: 1px solid rgba(89,107,77,.18);
+      background: linear-gradient(90deg, rgba(223,232,215,.65), rgba(255,253,248,.9));
+    }
+
+    .puzzle-head h2 {
+      margin: 0;
+      color: var(--sage);
+      font-size: clamp(1.5rem, 4.8vw, 2.3rem);
+    }
+
+    .puzzle-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .date-badge {
+      flex: 0 0 auto;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(89,107,77,.22);
+      color: var(--sage);
+      background: #fff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 700;
+      font-size: .92rem;
+    }
+
+    .locked {
+      padding: 32px 22px;
+      text-align: center;
+      color: var(--muted);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .lock-icon {
+      width: 64px;
+      height: 64px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 12px;
+      border-radius: 50%;
+      background: var(--sage-3);
+      color: var(--sage);
+      font-size: 28px;
+    }
+
+    .puzzle-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 22px;
+      padding: 22px;
+      align-items: start;
+    }
+
+    .grid-wrap {
+      overflow-x: auto;
+      padding: 8px 4px 16px;
+    }
+
+    .crossword {
+      display: grid;
+      justify-content: start;
+      gap: 0;
+      margin-inline: auto;
+      width: max-content;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(238,243,234,.45);
+      border: 1px solid rgba(89,107,77,.16);
+    }
+
+    .cell {
+      position: relative;
+      width: var(--cell);
+      height: var(--cell);
+      background: #fff;
+      border: 1.5px solid var(--line);
+      display: grid;
+      place-items: center;
+    }
+
+    .cell input {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      padding: 8px 2px 2px;
+      text-align: center;
+      text-transform: uppercase;
+      font: 700 calc(var(--cell) * .52)/1 Georgia, "Times New Roman", serif;
+      background: transparent;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .cell input:focus {
+      background: rgba(223,232,215,.65);
+      box-shadow: inset 0 0 0 2px var(--sage);
+    }
+
+    .cell.correct input { background: rgba(211,232,205,.78); }
+    .cell.wrong input { background: rgba(255,219,219,.85); }
+
+    .start-number {
+      position: absolute;
+      left: 3px;
+      top: 2px;
+      z-index: 2;
+      font-size: clamp(9px, calc(var(--cell) * .28), 12px);
+      font-weight: 700;
+      line-height: 1;
+      color: var(--line);
+      pointer-events: none;
+    }
+
+    .marker {
+      position: absolute;
+      right: 2px;
+      bottom: 2px;
+      z-index: 2;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 4px;
+      border-radius: 999px;
+      border: 1.5px solid var(--sage);
+      color: var(--sage);
+      background: rgba(255,255,255,.96);
+      display: grid;
+      place-items: center;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      pointer-events: none;
+    }
+
+    .side-panel {
+      display: grid;
+      gap: 16px;
+    }
+
+    .solution-card, .clues {
+      border: 1px solid rgba(89,107,77,.20);
+      background: #fff;
+      border-radius: 18px;
+      padding: 17px;
+    }
+
+    .solution-card h3, .clues h3 {
+      color: var(--sage);
+      font-size: 1.35rem;
+      margin: 0 0 10px;
+    }
+
+    .solution-boxes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 12px;
+    }
+
+    .solution-box {
+      width: 34px;
+      height: 38px;
+      border: 1.8px solid var(--sage);
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      position: relative;
+      font-weight: 800;
+      color: var(--sage);
+      background: var(--paper);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .solution-box small {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .message {
+      min-height: 22px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: .95rem;
+      line-height: 1.45;
+    }
+
+    .message.ok { color: var(--ok); font-weight: 700; }
+    .message.bad { color: var(--danger); font-weight: 700; }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    button {
+      cursor: pointer;
+      border: 1px solid rgba(89,107,77,.32);
+      background: var(--sage);
+      color: #fff;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 800;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button.secondary {
+      background: #fff;
+      color: var(--sage);
+    }
+
+    .clue-column {
+      margin-top: 8px;
+    }
+
+    .clue-column h4 {
+      margin: 13px 0 7px;
+      color: var(--sage);
+      font-size: 1.05rem;
+      border-bottom: 1px solid rgba(89,107,77,.20);
+      padding-bottom: 5px;
+    }
+
+    ol {
+      margin: 0;
+      padding-left: 1.35rem;
+    }
+
+    li {
+      margin: 6px 0;
+      padding-left: 3px;
+      color: var(--ink);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: .94rem;
+      line-height: 1.36;
+    }
+
+    .final-footer {
+      margin: 28px auto 0;
+      max-width: 780px;
+      text-align: center;
+      color: var(--muted);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: .92rem;
+    }
+
+    @media (max-width: 900px) {
+      .schedule { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .puzzle-body { grid-template-columns: 1fr; }
+      .side-panel { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 520px) {
+      .schedule { grid-template-columns: 1fr; }
+      .puzzle-head { align-items: flex-start; flex-direction: column; }
+      .leaf { width: 66px; opacity: .55; }
+      .hearts { font-size: 26px; }
+    }
+
+    @media print {
+      body { background: white; }
+      .app { width: 100%; padding: 0; }
+      .schedule, .buttons, .preview, .final-footer { display: none !important; }
+      .puzzle { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
+      .locked { display: none; }
+      input { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  
+    /* Clean, subtle page background. Three.js is now reserved for the final reveal only. */
+    body {
+      background:
+        radial-gradient(circle at 12% 8%, rgba(223,232,215,.72), transparent 25rem),
+        radial-gradient(circle at 88% 0%, rgba(238,243,234,.58), transparent 24rem),
+        linear-gradient(180deg, #fbfaf6 0%, #f8f7f1 72%, #f4f2eb 100%) !important;
+    }
+
+    #lumi-three,
+    .lumi-overlay {
+      display: none !important;
+    }
+
+    header::before {
+      content: "";
+      position: absolute;
+      inset: 24px 0 auto;
+      height: 180px;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 8%, rgba(255,247,215,.55), transparent 27rem);
+      filter: blur(2px);
+    }
+
+    .subtitle {
+      background: rgba(255,253,248,.54);
+      border: 1px solid rgba(89,107,77,.12);
+      border-radius: 999px;
+      padding: 10px 18px;
+      box-shadow: 0 10px 28px rgba(51,58,46,.045);
+      backdrop-filter: blur(8px);
+    }
+
+    .schedule-card,
+    .puzzle {
+      backdrop-filter: blur(6px);
+    }
+
+    .puzzle::before {
+      opacity: .38;
+    }
+
+    .puzzle:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 46px rgba(44,52,38,.12);
+    }
+
+    .final-reveal__content {
+      width: min(960px, calc(100vw - 28px));
+      height: min(740px, calc(100vh - 30px));
+    }
+
+    #final-church-canvas {
+      touch-action: none;
+    }
+
+    @media (max-width: 900px) {
+      :root {
+        --cell: clamp(27px, 8.2vw, 38px);
+      }
+
+      .puzzle-body {
+        padding: 16px;
+        gap: 16px;
+      }
+
+      .grid-wrap {
+        margin-inline: -6px;
+        padding-inline: 6px;
+      }
+
+      .crossword {
+        padding: 8px;
+      }
+
+      .solution-card,
+      .clues {
+        padding: 15px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .app {
+        width: min(100% - 18px, 1100px);
+        padding-top: 12px;
+      }
+
+      header {
+        padding-inline: 8px;
+      }
+
+      .subtitle {
+        border-radius: 18px;
+        font-size: .94rem;
+      }
+
+      .note {
+        font-size: .86rem;
+      }
+
+      .puzzle-head {
+        padding: 16px;
+      }
+
+      .date-badge {
+        font-size: .82rem;
+        padding: 7px 10px;
+      }
+
+      .clues li {
+        font-size: .9rem;
+      }
+
+      .solution-box {
+        width: 31px;
+        height: 36px;
+      }
+
+      .final-reveal {
+        align-items: stretch;
+        padding: 10px;
+      }
+
+      .final-reveal__content {
+        width: 100%;
+        height: min(720px, calc(100vh - 20px));
+        border-radius: 22px;
+      }
+
+      .final-reveal__text {
+        padding: 0 16px 24px;
+      }
+
+      .final-reveal__kicker {
+        font-size: .72rem;
+        letter-spacing: .16em;
+      }
+
+      .final-reveal__text h2 {
+        font-size: clamp(2rem, 12vw, 3.6rem);
+        letter-spacing: .045em;
+      }
+
+      .final-reveal__text p {
+        font-size: .96rem;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <div id="final-reveal" class="final-reveal" aria-hidden="true">
+    <div class="final-reveal__darkness"></div>
+    <div class="final-reveal__spotlight final-reveal__spotlight--left"></div>
+    <div class="final-reveal__spotlight final-reveal__spotlight--right"></div>
+    <div class="final-reveal__content" role="dialog" aria-modal="true" aria-labelledby="final-reveal-title">
+      <canvas id="final-church-canvas" aria-hidden="true"></canvas>
+      <div class="final-reveal__text">
+        <p class="final-reveal__kicker">Der letzte Hinweis ist gelöst</p>
+        <h2 id="final-reveal-title">LUMINISCENCE</h2>
+        <p>Am 22. Juli wartet im Michel ein Abend aus Licht, Klang und einem kleinen Geheimnis auf dich.</p>
+        <p class="final-reveal__redirect">Weiterleitung in <strong id="final-countdown">20</strong> Sekunden …</p>
+      </div>
+    </div>
+  </div>
+  <main class="app">
+    <header>
+      <svg class="leaf" viewBox="0 0 120 160" aria-hidden="true">
+        <path d="M25 145 C42 95, 54 55, 95 18" fill="none" stroke="#596b4d" stroke-width="3" stroke-linecap="round"/>
+        <path d="M39 106 C11 98, 8 72, 42 79 C52 85, 51 101, 39 106Z" fill="#dfe8d7" stroke="#596b4d" stroke-width="2"/>
+        <path d="M51 78 C25 62, 29 38, 60 49 C70 57, 67 73, 51 78Z" fill="#dfe8d7" stroke="#596b4d" stroke-width="2"/>
+        <path d="M67 54 C45 34, 55 14, 82 29 C90 38, 82 52, 67 54Z" fill="#dfe8d7" stroke="#596b4d" stroke-width="2"/>
+        <path d="M52 120 C72 102, 92 104, 95 127 C76 134, 62 131, 52 120Z" fill="#eef3ea" stroke="#596b4d" stroke-width="2"/>
+      </svg>
+      <div class="hearts">♡<br>♡</div>
+      <h1>Hinweisrätsel</h1>
+      <p class="subtitle">
+        Vier kleine Kreuzworträtsel bis zum 22. Juli. Jede Frage kommt nur einmal vor. Löse die Fragen, übertrage die markierten Buchstaben
+        in die Lösungsfelder und sammle nach und nach die Hinweise.
+      </p>
+      <p class="note">Umlaute bitte als AE, OE oder UE eintragen. Beispiel: SCHLÄGER → SCHLAEGER. Tipp: Pfeiltasten wechseln die Schreibrichtung, die Leertaste wechselt an Kreuzungen.</p>
+      <div id="preview" class="preview">Preview-Modus aktiv: Alle Rätsel sind zum Testen freigeschaltet.</div>
+    </header>
+
+    <section id="schedule" class="schedule" aria-label="Freischaltplan"></section>
+    <section id="puzzles"></section>
+
+    <p class="final-footer">
+      Erstes Rätsel: 22.06.2026. Danach wird jeden Sonntag ein weiteres Rätsel freigeschaltet.
+    </p>
+  </main>
+
+  <script>
+    const RAW_DATA = "W3siaWQiOiJsZXVjaHRlbiIsInRpdGxlIjoiUsOkdHNlbCAxIiwidGhlbWUiOiJEZXIgZXJzdGUgSGlud2VpcyIsInVubG9ja0RhdGUiOiIyMDI2LTA2LTIyIiwidGFyZ2V0IjoiTEVVQ0hURU4iLCJhZnRlclRleHQiOiJEZXIgQWJlbmQgd2lyZCBoZWxsZXIsIGFscyBkdSBkZW5rc3QuIiwiZW50cmllcyI6W3siYW5zd2VyIjoiU0NITEFFR0VSIiwiY2x1ZSI6IkRhbWl0IHNjaGzDpGd0IG1hbiBiZWltIE1pbmlnb2xmIGRlbiBCYWxsLiBVbWxhdXRlIGFscyBBRS4iLCJyb3ciOjcsImNvbCI6MCwiZGlyIjoiQSIsInNlY3JldEluZGV4IjoyLCJzZWNyZXRPcmRlciI6NX0seyJhbnN3ZXIiOiJHT0xGQkFMTCIsImNsdWUiOiJLbGVpbmVyIEJhbGwgYmVpbSBNaW5pZ29sZi4iLCJyb3ciOjAsImNvbCI6MywiZGlyIjoiRCIsInNlY3JldEluZGV4IjoyLCJzZWNyZXRPcmRlciI6MX0seyJhbnN3ZXIiOiJFUkRCRUVSRSIsImNsdWUiOiJSb3RlIEJlZXJlLCBkaWUgZ3V0IHp1bSBCcnVuY2ggcGFzc3QuIiwicm93Ijo0LCJjb2wiOjAsImRpciI6IkEiLCJzZWNyZXRJbmRleCI6NCwic2VjcmV0T3JkZXIiOjJ9LHsiYW5zd2VyIjoiS0VSQU1JSyIsImNsdWUiOiJNYXRlcmlhbCwgZGFzIG1hbiBiZW1hbGVuIHVuZCBicmVubmVuIGthbm4uIiwicm93Ijo2LCJjb2wiOjUsImRpciI6IkQiLCJzZWNyZXRJbmRleCI6MSwic2VjcmV0T3JkZXIiOjd9LHsiYW5zd2VyIjoiQlJVTkNIIiwiY2x1ZSI6Ik1pc2NodW5nIGF1cyBGcsO8aHN0w7xjayB1bmQgTWl0dGFnZXNzZW4uIiwicm93IjozLCJjb2wiOjEsImRpciI6IkQiLCJzZWNyZXRJbmRleCI6Miwic2VjcmV0T3JkZXIiOjN9LHsiYW5zd2VyIjoiTUFUQ0hBIiwiY2x1ZSI6Ikdyw7xuZXIgVGVlIGF1cyBKYXBhbiwgb2Z0IGFscyBQdWx2ZXIgenViZXJlaXRldC4iLCJyb3ciOjEwLCJjb2wiOjUsImRpciI6IkEiLCJzZWNyZXRJbmRleCI6Mywic2VjcmV0T3JkZXIiOjR9LHsiYW5zd2VyIjoiUElOU0VMIiwiY2x1ZSI6IkRhbWl0IGJyaW5ndCBtYW4gRmFyYmUgYXVmIEtlcmFtaWsuIiwicm93IjowLCJjb2wiOjcsImRpciI6IkQiLCJzZWNyZXRJbmRleCI6Miwic2VjcmV0T3JkZXIiOjh9LHsiYW5zd2VyIjoiS0VSWkVOIiwiY2x1ZSI6IktsZWluZSB3YXJtZSBMaWNodHF1ZWxsZW4gYXVmIGRlbSBUaXNjaC4iLCJyb3ciOjEyLCJjb2wiOjUsImRpciI6IkEifSx7ImFuc3dlciI6Ik1BVFRFIiwiY2x1ZSI6IllvZ2EtVW50ZXJsYWdlLiIsInJvdyI6MCwiY29sIjo1LCJkaXIiOiJEIiwic2VjcmV0SW5kZXgiOjIsInNlY3JldE9yZGVyIjo2fSx7ImFuc3dlciI6IlNURVJOIiwiY2x1ZSI6IkhpbW1lbHNrw7ZycGVyLCBkZXIgbmFjaHRzIGZ1bmtlbHQuIiwicm93IjozLCJjb2wiOjcsImRpciI6IkEifSx7ImFuc3dlciI6IkFCRU5EIiwiY2x1ZSI6IlRhZ2VzemVpdCBuYWNoIGRlbSBTb25uZW51bnRlcmdhbmcuIiwicm93IjowLCJjb2wiOjExLCJkaXIiOiJEIn0seyJhbnN3ZXIiOiJZT0dBIiwiY2x1ZSI6IlJ1aGlnZSBCZXdlZ3VuZ3Nmb3JtIG1pdCBBdGVtZm9rdXMuIiwicm93Ijo5LCJjb2wiOjIsImRpciI6IkEifSx7ImFuc3dlciI6IkhFTEwiLCJjbHVlIjoiR2VnZW50ZWlsIHZvbiBkdW5rZWwuIiwicm93IjoyLCJjb2wiOjksImRpciI6IkQifV19LHsiaWQiOiJrbGFuZyIsInRpdGxlIjoiUsOkdHNlbCAyIiwidGhlbWUiOiJEZXIgendlaXRlIEhpbndlaXMiLCJ1bmxvY2tEYXRlIjoiMjAyNi0wNi0yOCIsInRhcmdldCI6IktMQU5HIiwiYWZ0ZXJUZXh0IjoiRXMgd2lyZCBuaWNodCBudXIgZXR3YXMgZsO8ciBkaWUgQXVnZW4uIiwiZW50cmllcyI6W3siYW5zd2VyIjoiUkhZVEhNVVMiLCJjbHVlIjoiR2xlaWNobcOkw59pZ2VyIFRha3QgYmVpIE11c2lrIG9kZXIgU3BvcnQuIiwicm93Ijo3LCJjb2wiOjMsImRpciI6IkEifSx7ImFuc3dlciI6IkFUTVVORyIsImNsdWUiOiJCZWltIFlvZ2EgYmVzb25kZXJzIHdpY2h0aWcuIiwicm93Ijo2LCJjb2wiOjYsImRpciI6IkQiLCJzZWNyZXRJbmRleCI6MCwic2VjcmV0T3JkZXIiOjN9LHsiYW5zd2VyIjoiU1RJTU1FIiwiY2x1ZSI6IkRhbWl0IGthbm4gbWFuIHNpbmdlbiBvZGVyIHNwcmVjaGVuLiIsInJvdyI6NCwiY29sIjo4LCJkaXIiOiJEIn0seyJhbnN3ZXIiOiJSVURFUk4iLCJjbHVlIjoiQmV3ZWd1bmcgYXVmIGRlbSBXYXNzZXIgb2RlciBhdWYgZGVtIFRyYWluaW5nc2dlcsOkdC4iLCJyb3ciOjMsImNvbCI6MywiZGlyIjoiRCJ9LHsiYW5zd2VyIjoiS1JBRlQiLCJjbHVlIjoiRW5lcmdpZSBpbiBkZW4gTXVza2Vsbi4iLCJyb3ciOjMsImNvbCI6MiwiZGlyIjoiQSIsInNlY3JldEluZGV4IjowLCJzZWNyZXRPcmRlciI6MX0seyJhbnN3ZXIiOiJNQVRURSIsImNsdWUiOiJEYXJhdWYgbGFuZGVuIEjDpG5kZSB1bmQgRsO8w59lIGJlaSB2aWVsZW4gWW9nYS3DnGJ1bmdlbi4iLCJyb3ciOjAsImNvbCI6NiwiZGlyIjoiRCJ9LHsiYW5zd2VyIjoiTVVTSUsiLCJjbHVlIjoiS3Vuc3Rmb3JtIGF1cyBUw7ZuZW4uIiwicm93IjowLCJjb2wiOjYsImRpciI6IkEifSx7ImFuc3dlciI6IllPR0EiLCJjbHVlIjoiQmV3ZWd1bmdzcHJheGlzIG1pdCBQb3NlbiwgRGVobnVuZyB1bmQgQXRlbS4iLCJyb3ciOjAsImNvbCI6NCwiZGlyIjoiRCIsInNlY3JldEluZGV4IjoyLCJzZWNyZXRPcmRlciI6NX0seyJhbnN3ZXIiOiJMSUVEIiwiY2x1ZSI6Ikdlc3VuZ2VuZXMgTXVzaWtzdMO8Y2suIiwicm93Ijo1LCJjb2wiOjAsImRpciI6IkEiLCJzZWNyZXRJbmRleCI6MCwic2VjcmV0T3JkZXIiOjJ9LHsiYW5zd2VyIjoiRUNITyIsImNsdWUiOiJadXLDvGNrZ2V3b3JmZW5lciBLbGFuZy4iLCJyb3ciOjEsImNvbCI6MSwiZGlyIjoiQSJ9LHsiYW5zd2VyIjoiUFVMUyIsImNsdWUiOiJTY2hsYWcsIGRlciBiZWltIFRyYWluaW5nIHNjaG5lbGxlciB3ZXJkZW4ga2Fubi4iLCJyb3ciOjQsImNvbCI6MTAsImRpciI6IkQifSx7ImFuc3dlciI6IlJVSEUiLCJjbHVlIjoiR2VnZW50ZWlsIHZvbiBIZWt0aWsuIiwicm93Ijo5LCJjb2wiOjUsImRpciI6IkEifSx7ImFuc3dlciI6IlRBS1QiLCJjbHVlIjoiUmVnZWxtw6TDn2lnZXIgU2NobGFnIGluIGRlciBNdXNpay4iLCJyb3ciOjIsImNvbCI6NiwiZGlyIjoiQSJ9LHsiYW5zd2VyIjoiVE9OIiwiY2x1ZSI6IkVpbiBlaW56ZWxuZXIgTGF1dCBpbiBkZXIgTXVzaWsuIiwicm93Ijo4LCJjb2wiOjEsImRpciI6IkEiLCJzZWNyZXRJbmRleCI6Miwic2VjcmV0T3JkZXIiOjR9XX0seyJpZCI6Im1pY2hlbCIsInRpdGxlIjoiUsOkdHNlbCAzIiwidGhlbWUiOiJEZXIgT3J0IHdpcmQgZ2VuYXVlciIsInVubG9ja0RhdGUiOiIyMDI2LTA3LTA1IiwidGFyZ2V0IjoiTUlDSEVMIiwiYWZ0ZXJUZXh0IjoiSmV0enQgd2lyZCBIYW1idXJnIGVpbiBiaXNzY2hlbiBnZW5hdWVyLiIsImVudHJpZXMiOlt7ImFuc3dlciI6IldFU0VORE9SRiIsImNsdWUiOiJTYW10Z2VtZWluZGUsIHp1IGRlciBHcm/DnyBPZXNpbmdlbiBnZWjDtnJ0LiIsInJvdyI6NiwiY29sIjozLCJkaXIiOiJBIiwic2VjcmV0SW5kZXgiOjEsInNlY3JldE9yZGVyIjo1fSx7ImFuc3dlciI6Ik9FU0lOR0VOIiwiY2x1ZSI6Ilp3ZWl0ZXIgVGVpbCBkZXMgRG9yZm5hbWVucyBHcm/DnyBPZXNpbmdlbi4gT0Ugc3RhdHQgw5YuIiwicm93Ijo0LCJjb2wiOjUsImRpciI6IkQifSx7ImFuc3dlciI6IlNDSExBRUdFUiIsImNsdWUiOiJTcG9ydGdlcsOkdCwgZGFzIGJlaW0gTWluaWdvbGYgaW4gZGVyIEhhbmQgbGllZ3QuIFVtbGF1dGUgYWxzIEFFLiIsInJvdyI6MTAsImNvbCI6MCwiZGlyIjoiQSJ9LHsiYW5zd2VyIjoiVFVSTSIsImNsdWUiOiJIb2hlciBHZWLDpHVkZXRlaWwgbWl0IEF1c3NpY2h0LiIsInJvdyI6OCwiY29sIjo4LCJkaXIiOiJEIn0seyJhbnN3ZXIiOiJNSU5JR09MRiIsImNsdWUiOiJFdWVyIGJpc2hlciB2ZXJkw6RjaHRpZyBow6R1ZmlnZXMgRGF0ZS1TcGllbC4iLCJyb3ciOjQsImNvbCI6MCwiZGlyIjoiQSIsInNlY3JldEluZGV4IjowLCJzZWNyZXRPcmRlciI6MX0seyJhbnN3ZXIiOiJHSUZIT1JOIiwiY2x1ZSI6IkxhbmRrcmVpcyB2b24gR3Jvw58gT2VzaW5nZW4uIiwicm93Ijo0LCJjb2wiOjExLCJkaXIiOiJEIiwic2VjcmV0SW5kZXgiOjEsInNlY3JldE9yZGVyIjoyfSx7ImFuc3dlciI6IkVMQkUiLCJjbHVlIjoiRmx1c3MsIGRlciB6dSBIYW1idXJnIGdlaMO2cnQuIiwicm93Ijo5LCJjb2wiOjMsImRpciI6IkQifSx7ImFuc3dlciI6IkxPQ0giLCJjbHVlIjoiWmllbCBiZWltIE1pbmlnb2xmLiIsInJvdyI6OCwiY29sIjoxMCwiZGlyIjoiQSIsInNlY3JldEluZGV4IjowLCJzZWNyZXRPcmRlciI6Nn0seyJhbnN3ZXIiOiJIQUZFTiIsImNsdWUiOiJPcnQgZsO8ciBTY2hpZmZlIGluIEhhbWJ1cmcuIiwicm93IjoyLCJjb2wiOjcsImRpciI6IkQifSx7ImFuc3dlciI6IkhBTUJVUkciLCJjbHVlIjoiRGllIFN0YWR0LCBkaWUgZHUgc2Nob24ga2VubnN0LiIsInJvdyI6MiwiY29sIjo3LCJkaXIiOiJBIiwic2VjcmV0SW5kZXgiOjAsInNlY3JldE9yZGVyIjo0fSx7ImFuc3dlciI6IkRPUkYiLCJjbHVlIjoiS2xlaW5lciBPcnQg4oCTIGltIEdlZ2Vuc2F0eiB6dXIgR3Jvw59zdGFkdC4iLCJyb3ciOjAsImNvbCI6MTIsImRpciI6IkQifSx7ImFuc3dlciI6IktJUkNIRSIsImNsdWUiOiJHZWLDpHVkZSBtaXQgVHVybSwgR2xvY2tlbiB1bmQgQsOkbmtlbi4iLCJyb3ciOjQsImNvbCI6MTMsImRpciI6IkQiLCJzZWNyZXRJbmRleCI6Mywic2VjcmV0T3JkZXIiOjN9LHsiYW5zd2VyIjoiQkFITiIsImNsdWUiOiJFaW5lIGVpbnplbG5lIFN0cmVja2UgYmVpbSBNaW5pZ29sZi4iLCJyb3ciOjEsImNvbCI6MiwiZGlyIjoiRCJ9LHsiYW5zd2VyIjoiR0xPQ0tFIiwiY2x1ZSI6IlNpZSBow6RuZ3Qgb2Z0IGltIFR1cm0gdW5kIGtsaW5ndCBsYXV0LiIsInJvdyI6NywiY29sIjoxLCJkaXIiOiJEIn1dfSx7ImlkIjoibHVtaW5pc2NlbmNlIiwidGl0bGUiOiJSw6R0c2VsIDQiLCJ0aGVtZSI6IkRpZSBBdWZsw7ZzdW5nIiwidW5sb2NrRGF0ZSI6IjIwMjYtMDctMTIiLCJ0YXJnZXQiOiJMVU1JTklTQ0VOQ0UiLCJhZnRlclRleHQiOiJEaWUgbGV0enRlIEzDtnN1bmcgaXN0IGtlaW4gSGlud2VpcyBtZWhyIOKAkyBzaWUgaXN0IGRpZSDDnGJlcnJhc2NodW5nLiIsImVudHJpZXMiOlt7ImFuc3dlciI6IlNDSExBRUdFUiIsImNsdWUiOiJEZXIgQmFsbCBiZXdlZ3Qgc2ljaCBlcnN0LCB3ZW5uIGRpZXNlcyBNaW5pZ29sZi1HZXLDpHQgaWhuIHRyaWZmdC4gVW1sYXV0ZSBhbHMgQUUuIiwicm93IjoxMSwiY29sIjo3LCJkaXIiOiJBIiwic2VjcmV0SW5kZXgiOjAsInNlY3JldE9yZGVyIjo3fSx7ImFuc3dlciI6IkxFVUNIVEVOIiwiY2x1ZSI6IldhcyBMYW1wZW4sIFN0ZXJuZSB1bmQgbWFuY2htYWwgQXVnZW4gdHVuLiIsInJvdyI6NywiY29sIjo5LCJkaXIiOiJEIiwic2VjcmV0SW5kZXgiOjAsInNlY3JldE9yZGVyIjoxfSx7ImFuc3dlciI6Ik1JTklHT0xGIiwiY2x1ZSI6IlNwaWVsIG1pdCBCYWhuZW4sIEhpbmRlcm5pc3NlbiB1bmQgbcO2Z2xpY2hzdCB3ZW5pZ2VuIFNjaGzDpGdlbi4iLCJyb3ciOjcsImNvbCI6MTMsImRpciI6IkQiLCJzZWNyZXRJbmRleCI6MSwic2VjcmV0T3JkZXIiOjR9LHsiYW5zd2VyIjoiRVJEQkVFUkUiLCJjbHVlIjoiS2xhc3Npc2NoZSByb3RlIEZydWNodCwgb2Z0IG1pdCBTYWhuZSBvZGVyIGF1ZiBLdWNoZW4uIiwicm93IjoxMywiY29sIjo0LCJkaXIiOiJBIiwic2VjcmV0SW5kZXgiOjAsInNlY3JldE9yZGVyIjoxMn0seyJhbnN3ZXIiOiJLRVJBTUlLIiwiY2x1ZSI6IkF1cyBkaWVzZW0gV2Vya3N0b2ZmIGJlc3RlaGVuIHZpZWxlIGJlbWFsYmFyZSBUYXNzZW4gdW5kIFRlbGxlci4iLCJyb3ciOjgsImNvbCI6OCwiZGlyIjoiQSJ9LHsiYW5zd2VyIjoiSEFNQlVSRyIsImNsdWUiOiJIYW5zZXN0YWR0IGFuIGRlciBFbGJlLiIsInJvdyI6OCwiY29sIjo1LCJkaXIiOiJEIn0seyJhbnN3ZXIiOiJCUlVOQ0giLCJjbHVlIjoiU3DDpHRlcyBGcsO8aHN0w7xjaywgZGFzIHNjaG9uIGZhc3QgTWl0dGFnZXNzZW4gaXN0LiIsInJvdyI6OCwiY29sIjowLCJkaXIiOiJBIiwic2VjcmV0SW5kZXgiOjIsInNlY3JldE9yZGVyIjoyfSx7ImFuc3dlciI6Ik1BVENIQSIsImNsdWUiOiJHcsO8bmVzIFB1bHZlciwgZGFzIG9mdCBtaXQgTWlsY2ggYXVmZ2VzY2jDpHVtdCB3aXJkLiIsInJvdyI6MywiY29sIjoxMSwiZGlyIjoiRCIsInNlY3JldEluZGV4IjowLCJzZWNyZXRPcmRlciI6M30seyJhbnN3ZXIiOiJNSUNIRUwiLCJjbHVlIjoiSGFtYnVyZ2VyIFNwaXR6bmFtZSBmw7xyIFN0LiBNaWNoYWVsaXMuIiwicm93IjozLCJjb2wiOjExLCJkaXIiOiJBIiwic2VjcmV0SW5kZXgiOjIsInNlY3JldE9yZGVyIjo4fSx7ImFuc3dlciI6IkJFRVJFTiIsImNsdWUiOiJTYW1tZWxiZWdyaWZmIGbDvHIgRXJkLSwgQmxhdS0sIEhpbS0gdW5kIEJyb21iZWVyZW4uIiwicm93IjoyLCJjb2wiOjE1LCJkaXIiOiJEIiwic2VjcmV0SW5kZXgiOjEsInNlY3JldE9yZGVyIjo5fSx7ImFuc3dlciI6IlBJTlNFTCIsImNsdWUiOiJXZXJremV1ZyBtaXQgQm9yc3RlbiBmw7xyIGZlaW5lIEZhcmJzdHJpY2hlLiIsInJvdyI6NiwiY29sIjozLCJkaXIiOiJEIiwic2VjcmV0SW5kZXgiOjIsInNlY3JldE9yZGVyIjoxMH0seyJhbnN3ZXIiOiJLSVJDSEUiLCJjbHVlIjoiU2FrcmFsYmF1LCBpbiBkZW0gYXVjaCBPcmdlbG11c2lrIGVya2xpbmdlbiBrYW5uLiIsInJvdyI6OSwiY29sIjoxNSwiZGlyIjoiRCIsInNlY3JldEluZGV4IjoxLCJzZWNyZXRPcmRlciI6Nn0seyJhbnN3ZXIiOiJHTE9DS0UiLCJjbHVlIjoiTWV0YWxsZW5lciBLbGFuZ2vDtnJwZXIgaW0gVHVybS4iLCJyb3ciOjAsImNvbCI6MTMsImRpciI6IkQifSx7ImFuc3dlciI6IktMQU5HIiwiY2x1ZSI6IldhcyBtYW4gaMO2cnQsIHdlbm4gZXR3YXMgdMO2bnQuIiwicm93IjowLCJjb2wiOjksImRpciI6IkEiLCJzZWNyZXRJbmRleCI6Mywic2VjcmV0T3JkZXIiOjV9LHsiYW5zd2VyIjoiTElDSFQiLCJjbHVlIjoiRGFzIEdlZ2VudGVpbCB2b24gRHVua2VsaGVpdC4iLCJyb3ciOjUsImNvbCI6NywiZGlyIjoiQSIsInNlY3JldEluZGV4IjoyLCJzZWNyZXRPcmRlciI6MTF9LHsiYW5zd2VyIjoiT1JHRUwiLCJjbHVlIjoiR3Jvw59lcyBLaXJjaGVuaW5zdHJ1bWVudCBtaXQgUGZlaWZlbi4iLCJyb3ciOjEsImNvbCI6NywiZGlyIjoiRCJ9LHsiYW5zd2VyIjoiRkFSQkUiLCJjbHVlIjoiRGFtaXQgd2lyZCBLZXJhbWlrIGxlYmVuZGlnLiIsInJvdyI6NiwiY29sIjoxLCJkaXIiOiJEIn0seyJhbnN3ZXIiOiJBQkVORCIsImNsdWUiOiJUZWlsIGRlcyBUYWdlcywgYW4gZGVtIHZpZWxlIERhdGVzIGJlZ2lubmVuLiIsInJvdyI6MTEsImNvbCI6MTEsImRpciI6IkQifSx7ImFuc3dlciI6IllPR0EiLCJjbHVlIjoiU3BvcnRsaWNoLXJ1aGlnZSBBdXN6ZWl0IGF1ZiBkZXIgTWF0dGUuIiwicm93IjozLCJjb2wiOjUsImRpciI6IkEifSx7ImFuc3dlciI6IkNIT1IiLCJjbHVlIjoiR3J1cHBlIHZvbiBNZW5zY2hlbiwgZGllIGdlbWVpbnNhbSBzaW5ndC4iLCJyb3ciOjEsImNvbCI6NSwiZGlyIjoiQSJ9XX1d";
+    const PREVIEW = new URLSearchParams(location.search).get("preview") === "1";
+
+    function decodeData() {
+      const binary = atob(RAW_DATA);
+      const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+      return JSON.parse(new TextDecoder().decode(bytes));
+    }
+
+    const puzzles = decodeData();
+    const activeDirections = {};
+
+    function berlinTodayISO() {
+      const parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Europe/Berlin",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts(new Date());
+
+      const map = Object.fromEntries(parts.map(part => [part.type, part.value]));
+      return `${map.year}-${map.month}-${map.day}`;
+    }
+
+    const todayISO = berlinTodayISO();
+
+    function parseYMD(ymd) {
+      const [y, m, d] = ymd.split("-").map(Number);
+      return new Date(Date.UTC(y, m - 1, d));
+    }
+
+    function daysUntil(ymd) {
+      const today = parseYMD(todayISO);
+      const target = parseYMD(ymd);
+      return Math.ceil((target - today) / 86400000);
+    }
+
+    function formatDate(ymd) {
+      const [y, m, d] = ymd.split("-").map(Number);
+      return new Intl.DateTimeFormat("de-DE", {
+        weekday: "long",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      }).format(new Date(Date.UTC(y, m - 1, d)));
+    }
+
+    function isUnlocked(puzzle) {
+      return PREVIEW || todayISO >= puzzle.unlockDate;
+    }
+
+    function normalizeChar(value) {
+      return (value || "")
+        .toUpperCase()
+        .replace(/Ä/g, "A")
+        .replace(/Ö/g, "O")
+        .replace(/Ü/g, "U")
+        .replace(/ß/g, "S")
+        .replace(/[^A-Z]/g, "")
+        .slice(0, 1);
+    }
+
+    function buildPuzzleModel(puzzle) {
+      const cells = new Map();
+      const starts = new Map();
+
+      puzzle.entries.forEach((entry, entryIndex) => {
+        const dx = entry.dir === "A" ? 1 : 0;
+        const dy = entry.dir === "D" ? 1 : 0;
+
+        const startKey = `${entry.row},${entry.col}`;
+        if (!starts.has(startKey)) starts.set(startKey, []);
+        starts.get(startKey).push(entryIndex);
+
+        [...entry.answer].forEach((letter, i) => {
+          const row = entry.row + dy * i;
+          const col = entry.col + dx * i;
+          const key = `${row},${col}`;
+          if (!cells.has(key)) {
+            cells.set(key, { row, col, letter, entries: [], marker: null });
+          }
+          const cell = cells.get(key);
+          cell.entries.push(entryIndex);
+
+          if (cell.letter !== letter) {
+            console.warn("Crossword conflict", puzzle.id, key, cell.letter, letter);
+          }
+
+          if (entry.secretOrder && i === entry.secretIndex) {
+            cell.marker = entry.secretOrder;
+          }
+        });
+      });
+
+      const sortedStarts = [...starts.entries()]
+        .map(([key]) => {
+          const [row, col] = key.split(",").map(Number);
+          return { key, row, col };
+        })
+        .sort((a, b) => a.row - b.row || a.col - b.col);
+
+      const numberByStart = new Map();
+      sortedStarts.forEach((start, idx) => numberByStart.set(start.key, idx + 1));
+
+      puzzle.entries.forEach(entry => {
+        entry.number = numberByStart.get(`${entry.row},${entry.col}`);
+      });
+
+      const values = [...cells.values()];
+      const minRow = Math.min(...values.map(c => c.row));
+      const maxRow = Math.max(...values.map(c => c.row));
+      const minCol = Math.min(...values.map(c => c.col));
+      const maxCol = Math.max(...values.map(c => c.col));
+
+      return { cells, starts, numberByStart, minRow, maxRow, minCol, maxCol };
+    }
+
+    function storageKey(puzzleId) {
+      return `hinweisraetsel-${puzzleId}`;
+    }
+
+    function loadState(puzzleId) {
+      try {
+        return JSON.parse(localStorage.getItem(storageKey(puzzleId)) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveState(puzzleId, state) {
+      localStorage.setItem(storageKey(puzzleId), JSON.stringify(state));
+    }
+
+    function renderSchedule() {
+      const container = document.getElementById("schedule");
+      container.innerHTML = puzzles.map((p, idx) => {
+        const open = isUnlocked(p);
+        const diff = daysUntil(p.unlockDate);
+        const status = open
+          ? "freigeschaltet"
+          : diff === 1
+            ? "morgen"
+            : `in ${diff} Tagen`;
+        return `
+          <article class="schedule-card">
+            <strong>${idx + 1}. ${p.theme}</strong>
+            <span>${formatDate(p.unlockDate)}</span>
+            <span class="status-pill ${open ? "open" : ""}">${status}</span>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderPuzzles() {
+      const root = document.getElementById("puzzles");
+      root.innerHTML = "";
+      puzzles.forEach((puzzle) => {
+        const article = document.createElement("article");
+        article.className = "puzzle";
+        article.id = `puzzle-${puzzle.id}`;
+
+        article.innerHTML = `
+          <div class="puzzle-head">
+            <div>
+              <h2>${puzzle.title}</h2>
+              <p>${puzzle.theme}</p>
+            </div>
+            <div class="date-badge">${formatDate(puzzle.unlockDate)}</div>
+          </div>
+        `;
+
+        if (!isUnlocked(puzzle)) {
+          const diff = daysUntil(puzzle.unlockDate);
+          article.innerHTML += `
+            <div class="locked">
+              <div class="lock-icon">🔒</div>
+              <strong>Noch verschlossen</strong>
+              <p>Dieses Rätsel öffnet sich am ${formatDate(puzzle.unlockDate)}${diff > 0 ? ` – also in ${diff} Tagen.` : "."}</p>
+            </div>
+          `;
+          root.appendChild(article);
+          return;
+        }
+
+        const model = buildPuzzleModel(puzzle);
+        const state = loadState(puzzle.id);
+        const rows = model.maxRow - model.minRow + 1;
+        const cols = model.maxCol - model.minCol + 1;
+
+        const body = document.createElement("div");
+        body.className = "puzzle-body";
+
+        const gridWrap = document.createElement("div");
+        gridWrap.className = "grid-wrap";
+
+        const grid = document.createElement("div");
+        grid.className = "crossword";
+        grid.style.gridTemplateColumns = `repeat(${cols}, var(--cell))`;
+        grid.style.gridTemplateRows = `repeat(${rows}, var(--cell))`;
+
+        [...model.cells.values()].forEach(cell => {
+          const key = `${cell.row},${cell.col}`;
+          const div = document.createElement("div");
+          div.className = "cell";
+          div.style.gridRow = cell.row - model.minRow + 1;
+          div.style.gridColumn = cell.col - model.minCol + 1;
+          div.dataset.key = key;
+          div.dataset.letter = cell.letter;
+
+          const startKey = `${cell.row},${cell.col}`;
+          if (model.numberByStart.has(startKey)) {
+            const small = document.createElement("span");
+            small.className = "start-number";
+            small.textContent = model.numberByStart.get(startKey);
+            div.appendChild(small);
+          }
+
+          if (cell.marker) {
+            const marker = document.createElement("span");
+            marker.className = "marker";
+            marker.textContent = cell.marker;
+            div.appendChild(marker);
+          }
+
+          const input = document.createElement("input");
+          input.autocomplete = "off";
+          input.inputMode = "text";
+          input.maxLength = 1;
+          input.value = state[key] || "";
+          input.setAttribute("aria-label", `Feld ${key}`);
+          input.addEventListener("focus", () => {
+            ensureActiveDirection(puzzle, cell);
+          });
+
+          input.addEventListener("click", () => {
+            ensureActiveDirection(puzzle, cell);
+          });
+
+          input.addEventListener("input", () => {
+            const next = normalizeChar(input.value);
+            input.value = next;
+            state[key] = next;
+            saveState(puzzle.id, state);
+            div.classList.remove("correct", "wrong");
+            updateSolution(puzzle, model);
+
+            if (next) {
+              const following = findNextInWord(puzzle, model, cell, 1);
+              if (following) {
+                following.focus();
+                following.select();
+              }
+            }
+          });
+
+          input.addEventListener("keydown", (event) => {
+            if (event.key === "Backspace" && !input.value) {
+              event.preventDefault();
+              const previous = findNextInWord(puzzle, model, cell, -1);
+              if (previous) {
+                previous.focus();
+                previous.select();
+              }
+            }
+
+            if (event.key === " ") {
+              event.preventDefault();
+              toggleDirection(puzzle, cell);
+            }
+
+            if (["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown"].includes(event.key)) {
+              event.preventDefault();
+              activeDirections[puzzle.id] = ["ArrowRight", "ArrowLeft"].includes(event.key) ? "A" : "D";
+              const directionStep = ["ArrowRight", "ArrowDown"].includes(event.key) ? 1 : -1;
+              const nextInput = findNextInWord(puzzle, model, cell, directionStep);
+              if (nextInput) {
+                nextInput.focus();
+                nextInput.select();
+              }
+            }
+          });
+          div.appendChild(input);
+          grid.appendChild(div);
+        });
+
+        gridWrap.appendChild(grid);
+
+        const side = document.createElement("aside");
+        side.className = "side-panel";
+
+        const solution = document.createElement("section");
+        solution.className = "solution-card";
+        solution.innerHTML = `
+          <h3>Lösungswort</h3>
+          <p class="message">Übertrage die markierten Buchstaben in der Reihenfolge der grünen Kreise.</p>
+          <div class="solution-boxes" id="solution-${puzzle.id}"></div>
+          <div class="buttons">
+            <button type="button" data-action="check">Prüfen</button>
+            <button type="button" class="secondary" data-action="clear">Leeren</button>
+          </div>
+          <p class="message" id="message-${puzzle.id}"></p>
+        `;
+
+        const cluesBox = document.createElement("section");
+        cluesBox.className = "clues";
+        const across = puzzle.entries
+          .filter(e => e.dir === "A")
+          .sort((a, b) => a.number - b.number)
+          .map(e => `<li value="${e.number}">${e.clue} (${e.answer.length})</li>`)
+          .join("");
+        const down = puzzle.entries
+          .filter(e => e.dir === "D")
+          .sort((a, b) => a.number - b.number)
+          .map(e => `<li value="${e.number}">${e.clue} (${e.answer.length})</li>`)
+          .join("");
+
+        cluesBox.innerHTML = `
+          <h3>Fragen</h3>
+          <div class="clue-column">
+            <h4>Waagerecht</h4>
+            <ol>${across}</ol>
+          </div>
+          <div class="clue-column">
+            <h4>Senkrecht</h4>
+            <ol>${down}</ol>
+          </div>
+        `;
+
+        side.append(solution, cluesBox);
+        body.append(gridWrap, side);
+        article.appendChild(body);
+        root.appendChild(article);
+
+        article.querySelector('[data-action="check"]').addEventListener("click", () => checkPuzzle(puzzle, model));
+        article.querySelector('[data-action="clear"]').addEventListener("click", () => {
+          if (!confirm("Alle Eingaben in diesem Rätsel löschen?")) return;
+          localStorage.removeItem(storageKey(puzzle.id));
+          sessionStorage.removeItem(`hinweisraetsel-solved-${puzzle.id}`);
+          article.querySelectorAll("input").forEach(input => input.value = "");
+          article.querySelectorAll(".cell").forEach(cell => cell.classList.remove("correct", "wrong"));
+          updateSolution(puzzle, model);
+          setMessage(puzzle.id, "", "");
+        });
+
+        updateSolution(puzzle, model);
+      });
+    }
+
+    function getEntryDirections(puzzle, cell) {
+      return [...new Set(cell.entries.map(entryIndex => puzzle.entries[entryIndex].dir))];
+    }
+
+    function ensureActiveDirection(puzzle, cell, preferredDirection = null) {
+      const directions = getEntryDirections(puzzle, cell);
+      const current = activeDirections[puzzle.id];
+
+      if (preferredDirection && directions.includes(preferredDirection)) {
+        activeDirections[puzzle.id] = preferredDirection;
+        return preferredDirection;
+      }
+
+      if (current && directions.includes(current)) {
+        return current;
+      }
+
+      const fallback = directions.includes("A") ? "A" : directions[0];
+      activeDirections[puzzle.id] = fallback;
+      return fallback;
+    }
+
+    function toggleDirection(puzzle, cell) {
+      const directions = getEntryDirections(puzzle, cell);
+      if (directions.length < 2) return ensureActiveDirection(puzzle, cell);
+
+      const current = ensureActiveDirection(puzzle, cell);
+      const next = current === "A" ? "D" : "A";
+      activeDirections[puzzle.id] = directions.includes(next) ? next : directions[0];
+      return activeDirections[puzzle.id];
+    }
+
+    function findNextInWord(puzzle, model, cell, step) {
+      const direction = ensureActiveDirection(puzzle, cell);
+      const entryIndex = cell.entries.find(index => puzzle.entries[index].dir === direction);
+
+      if (entryIndex === undefined) return null;
+
+      const entry = puzzle.entries[entryIndex];
+      const position = direction === "A" ? cell.col - entry.col : cell.row - entry.row;
+      const nextPosition = position + step;
+
+      if (nextPosition < 0 || nextPosition >= entry.answer.length) return null;
+
+      const nextRow = entry.row + (direction === "D" ? nextPosition : 0);
+      const nextCol = entry.col + (direction === "A" ? nextPosition : 0);
+      return getCellInput(puzzle.id, `${nextRow},${nextCol}`);
+    }
+
+    function getCellInput(puzzleId, key) {
+      return document.querySelector(`#puzzle-${puzzleId} .cell[data-key="${key}"] input`);
+    }
+
+    function setMessage(puzzleId, text, type) {
+      const message = document.getElementById(`message-${puzzleId}`);
+      if (!message) return;
+      message.textContent = text;
+      message.className = `message ${type || ""}`;
+    }
+
+
+    function celebratePuzzle(puzzleId) {
+      const puzzleElement = document.getElementById(`puzzle-${puzzleId}`);
+      if (puzzleElement) {
+        puzzleElement.classList.remove("solved-glow");
+        void puzzleElement.offsetWidth;
+        puzzleElement.classList.add("solved-glow");
+      }
+
+      const boxes = document.querySelectorAll(`#solution-${puzzleId} .solution-box`);
+      boxes.forEach((box, index) => {
+        box.classList.remove("revealed");
+        void box.offsetWidth;
+        box.style.animationDelay = `${index * 45}ms`;
+        box.classList.add("revealed");
+      });
+
+      if (window.lumi3d && typeof window.lumi3d.celebrate === "function") {
+        window.lumi3d.celebrate(puzzleId);
+      }
+
+      if (puzzleId === "luminiscence") {
+        window.setTimeout(() => {
+          if (window.finalReveal && typeof window.finalReveal.open === "function") {
+            window.finalReveal.open();
+          }
+        }, 900);
+      }
+    }
+
+    function markSolvedOnce(puzzleId) {
+      const key = `hinweisraetsel-solved-${puzzleId}`;
+      if (sessionStorage.getItem(key) === "1") return;
+      sessionStorage.setItem(key, "1");
+      celebratePuzzle(puzzleId);
+    }
+
+    function updateSolution(puzzle, model) {
+      const solutionBox = document.getElementById(`solution-${puzzle.id}`);
+      if (!solutionBox) return;
+
+      const markers = [...model.cells.values()]
+        .filter(cell => cell.marker)
+        .sort((a, b) => a.marker - b.marker);
+
+      solutionBox.innerHTML = markers.map(cell => {
+        const key = `${cell.row},${cell.col}`;
+        const input = getCellInput(puzzle.id, key);
+        const letter = input ? normalizeChar(input.value) : "";
+        return `<span class="solution-box"><small>${cell.marker}</small>${letter || "&nbsp;"}</span>`;
+      }).join("");
+
+      const current = markers.map(cell => {
+        const key = `${cell.row},${cell.col}`;
+        const input = getCellInput(puzzle.id, key);
+        return input ? normalizeChar(input.value) : "";
+      }).join("");
+
+      if (current.length === puzzle.target.length && current === puzzle.target) {
+        setMessage(puzzle.id, `Hinweis gelöst: ${puzzle.target}. ${puzzle.afterText}`, "ok");
+        markSolvedOnce(puzzle.id);
+      }
+    }
+
+    function checkPuzzle(puzzle, model) {
+      let total = 0;
+      let correct = 0;
+      let filled = 0;
+
+      [...model.cells.values()].forEach(cell => {
+        const key = `${cell.row},${cell.col}`;
+        const input = getCellInput(puzzle.id, key);
+        if (!input) return;
+
+        const value = normalizeChar(input.value);
+        const div = input.closest(".cell");
+        div.classList.remove("correct", "wrong");
+        total++;
+
+        if (value) filled++;
+        if (value === cell.letter) {
+          correct++;
+          if (value) div.classList.add("correct");
+        } else if (value) {
+          div.classList.add("wrong");
+        }
+      });
+
+      updateSolution(puzzle, model);
+
+      const secret = [...model.cells.values()]
+        .filter(cell => cell.marker)
+        .sort((a, b) => a.marker - b.marker)
+        .map(cell => {
+          const key = `${cell.row},${cell.col}`;
+          const input = getCellInput(puzzle.id, key);
+          return input ? normalizeChar(input.value) : "";
+        }).join("");
+
+      if (secret === puzzle.target) {
+        setMessage(puzzle.id, `Hinweis gelöst: ${puzzle.target}. ${puzzle.afterText}`, "ok");
+        markSolvedOnce(puzzle.id);
+      } else if (filled === 0) {
+        setMessage(puzzle.id, "Noch keine Eingaben zum Prüfen.", "");
+      } else if (correct === total) {
+        setMessage(puzzle.id, "Alle Felder stimmen. Schau dir jetzt die markierten Buchstaben an.", "ok");
+      } else {
+        setMessage(puzzle.id, `${correct} von ${total} Feldern stimmen bereits. Rot markierte Felder passen noch nicht.`, "bad");
+      }
+    }
+
+    if (PREVIEW) {
+      document.getElementById("preview").classList.add("show");
+    }
+
+    renderSchedule();
+    renderPuzzles();
+  </script>
+
+  <!-- GitHub Pages: Three.js liegt lokal unter ./assets/three/ -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./assets/three/build/three.module.js",
+      "three/addons/": "./assets/three/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from "three";
+    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+
+    // The regular page stays quiet and subtle. Three.js is used only for the final reveal.
+    window.lumi3d = {
+      celebrate() {}
+    };
+
+    function initFinalReveal() {
+      const modal = document.getElementById("final-reveal");
+      const canvas = document.getElementById("final-church-canvas");
+      const countdown = document.getElementById("final-countdown");
+      const targetUrl = "https://luminiscence.de/de/hamburg/";
+
+      if (!modal || !canvas) {
+        return { open() { location.href = targetUrl; } };
+      }
+
+      let initialized = false;
+      let renderer, scene, camera, composer, bloom, church, clock;
+      let redirectTimer = null;
+      let countdownTimer = null;
+      let remaining = 20;
+
+      function createChurchModel() {
+        const root = new THREE.Group();
+
+        const stone = new THREE.MeshStandardMaterial({
+          color: 0xd8cfb9,
+          roughness: 0.58,
+          metalness: 0.03,
+          emissive: 0x4a3c25,
+          emissiveIntensity: 0.16
+        });
+
+        const darkStone = new THREE.MeshStandardMaterial({
+          color: 0x7f8978,
+          roughness: 0.76,
+          metalness: 0.02
+        });
+
+        const roof = new THREE.MeshStandardMaterial({
+          color: 0x3e6b5c,
+          roughness: 0.48,
+          metalness: 0.08,
+          emissive: 0x07120f,
+          emissiveIntensity: 0.18
+        });
+
+        const glassGold = new THREE.MeshPhysicalMaterial({
+          color: 0xffd783,
+          roughness: 0.20,
+          transmission: 0.12,
+          transparent: true,
+          opacity: 0.72,
+          emissive: 0xffbb54,
+          emissiveIntensity: 1.18,
+          side: THREE.DoubleSide
+        });
+
+        const glassBlue = new THREE.MeshPhysicalMaterial({
+          color: 0x89b6d8,
+          roughness: 0.24,
+          transparent: true,
+          opacity: 0.52,
+          emissive: 0x477ea7,
+          emissiveIntensity: 0.62,
+          side: THREE.DoubleSide
+        });
+
+        const nave = new THREE.Mesh(new THREE.BoxGeometry(5.8, 3.1, 7.6), stone);
+        nave.position.set(0, -0.55, 0);
+        root.add(nave);
+
+        const roofShape = new THREE.Shape();
+        roofShape.moveTo(-3.25, 0);
+        roofShape.lineTo(0, 1.55);
+        roofShape.lineTo(3.25, 0);
+        roofShape.lineTo(-3.25, 0);
+
+        const roofGeo = new THREE.ExtrudeGeometry(roofShape, { depth: 8.05, bevelEnabled: false });
+        roofGeo.center();
+        const naveRoof = new THREE.Mesh(roofGeo, roof);
+        naveRoof.position.set(0, 1.2, 0);
+        naveRoof.rotation.y = Math.PI;
+        root.add(naveRoof);
+
+        const tower = new THREE.Mesh(new THREE.BoxGeometry(2.2, 6.3, 2.25), stone);
+        tower.position.set(0, 1.0, 4.65);
+        root.add(tower);
+
+        const spireShape = new THREE.ConeGeometry(1.55, 3.2, 4);
+        const spire = new THREE.Mesh(spireShape, roof);
+        spire.position.set(0, 5.75, 4.65);
+        spire.rotation.y = Math.PI / 4;
+        root.add(spire);
+
+        const crossMat = new THREE.MeshBasicMaterial({ color: 0xffe8a2 });
+        const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.86, 0.08), crossMat);
+        crossV.position.set(0, 7.75, 4.65);
+        const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.07, 0.07), crossMat);
+        crossH.position.set(0, 7.95, 4.65);
+        root.add(crossV, crossH);
+
+        function addWindow(x, y, z, mat, scale = 1) {
+          const group = new THREE.Group();
+          const arch = new THREE.Mesh(new THREE.CapsuleGeometry(0.32 * scale, 0.82 * scale, 8, 16), mat);
+          arch.rotation.z = Math.PI;
+          arch.scale.x = 0.72;
+          group.add(arch);
+
+          const frame = new THREE.Mesh(new THREE.TorusGeometry(0.31 * scale, 0.025 * scale, 8, 24), darkStone);
+          frame.scale.y = 1.55;
+          frame.position.z = 0.012;
+          group.add(frame);
+
+          group.position.set(x, y, z);
+          root.add(group);
+          return group;
+        }
+
+        for (const x of [-2.1, 0, 2.1]) {
+          const w = addWindow(x, 0.12, 3.84, x === 0 ? glassGold : glassBlue, 1.05);
+          w.rotation.y = 0;
+        }
+
+        for (const x of [-2.95, 2.95]) {
+          for (const z of [-2.2, 0.2]) {
+            const w = addWindow(x, 0, z, glassBlue, 0.85);
+            w.rotation.y = x < 0 ? Math.PI / 2 : -Math.PI / 2;
+          }
+        }
+
+        const towerWindow = addWindow(0, 2.45, 5.79, glassGold, 0.82);
+        towerWindow.scale.y = 1.12;
+
+        const doorMat = new THREE.MeshStandardMaterial({
+          color: 0x3c2b1e,
+          roughness: 0.62,
+          metalness: 0.05
+        });
+        const door = new THREE.Mesh(new THREE.BoxGeometry(0.92, 1.6, 0.08), doorMat);
+        door.position.set(0, -1.28, 5.82);
+        root.add(door);
+
+        const base = new THREE.Mesh(new THREE.BoxGeometry(6.3, 0.34, 8.2), darkStone);
+        base.position.set(0, -2.28, 0);
+        root.add(base);
+
+        // Extra details: front steps, buttresses, tower bands, clock, and decorative tracery.
+        const stepMat = new THREE.MeshStandardMaterial({
+          color: 0xcac1aa,
+          roughness: 0.66,
+          metalness: 0.02,
+          emissive: 0x2e2718,
+          emissiveIntensity: 0.10
+        });
+
+        for (let i = 0; i < 3; i++) {
+          const step = new THREE.Mesh(new THREE.BoxGeometry(1.9 + i * 0.55, 0.16, 0.55), stepMat);
+          step.position.set(0, -2.05 - i * 0.14, 6.08 + i * 0.28);
+          root.add(step);
+        }
+
+        for (const x of [-3.22, 3.22]) {
+          for (const z of [-2.7, 0.1, 2.55]) {
+            const buttress = new THREE.Mesh(new THREE.BoxGeometry(0.34, 2.72, 0.46), stone);
+            buttress.position.set(x, -0.58, z);
+            root.add(buttress);
+
+            const cap = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.52, 4), roof);
+            cap.position.set(x, 0.98, z);
+            cap.rotation.y = Math.PI / 4;
+            root.add(cap);
+          }
+        }
+
+        for (const y of [0.2, 2.8, 4.35]) {
+          const band = new THREE.Mesh(new THREE.BoxGeometry(2.42, 0.14, 2.48), darkStone);
+          band.position.set(0, y, 4.65);
+          root.add(band);
+        }
+
+        const clockFace = new THREE.Mesh(
+          new THREE.CircleGeometry(0.42, 40),
+          new THREE.MeshBasicMaterial({ color: 0xfff4c7 })
+        );
+        clockFace.position.set(0, 3.72, 5.79);
+        root.add(clockFace);
+
+        const clockRing = new THREE.Mesh(
+          new THREE.TorusGeometry(0.43, 0.025, 8, 40),
+          new THREE.MeshBasicMaterial({ color: 0x4b4b3d })
+        );
+        clockRing.position.set(0, 3.72, 5.805);
+        root.add(clockRing);
+
+        const handA = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.32, 0.018), darkStone);
+        handA.position.set(0, 3.80, 5.835);
+        handA.rotation.z = -0.42;
+        root.add(handA);
+
+        const handB = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.24, 0.018), darkStone);
+        handB.position.set(0.055, 3.72, 5.84);
+        handB.rotation.z = 1.25;
+        root.add(handB);
+
+        for (const x of [-0.62, 0.62]) {
+          const slit = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.88, 0.055), glassGold);
+          slit.position.set(x, 4.62, 5.82);
+          root.add(slit);
+        }
+
+        for (const x of [-0.32, 0.32]) {
+          const column = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.065, 1.72, 16), darkStone);
+          column.position.set(x, -1.18, 5.88);
+          root.add(column);
+        }
+
+        const roseWindow = new THREE.Group();
+        const roseOuter = new THREE.Mesh(
+          new THREE.TorusGeometry(0.58, 0.035, 10, 48),
+          darkStone
+        );
+        roseWindow.add(roseOuter);
+        for (let i = 0; i < 8; i++) {
+          const petal = new THREE.Mesh(
+            new THREE.CircleGeometry(0.13, 24),
+            i % 2 ? glassGold : glassBlue
+          );
+          const a = (i / 8) * Math.PI * 2;
+          petal.position.set(Math.cos(a) * 0.31, Math.sin(a) * 0.31, 0.02);
+          roseWindow.add(petal);
+        }
+        roseWindow.position.set(0, 1.42, 5.83);
+        root.add(roseWindow);
+
+        root.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = false;
+          }
+        });
+
+        root.scale.setScalar(window.innerWidth < 680 ? 0.92 : 1.16);
+        return root;
+      }
+
+      function init() {
+        if (initialized) return;
+        initialized = true;
+
+        scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x030504, 0.026);
+
+        camera = new THREE.PerspectiveCamera(42, 1, 0.1, 120);
+        camera.position.set(0, window.innerWidth < 680 ? 2.5 : 2.2, window.innerWidth < 680 ? 24 : 20);
+        camera.lookAt(0, 1.2, 0);
+
+        renderer = new THREE.WebGLRenderer({
+          canvas,
+          alpha: true,
+          antialias: true,
+          powerPreference: "high-performance"
+        });
+        renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.22;
+
+        composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene, camera));
+        bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 1.55, 0.76, 0.045);
+        composer.addPass(bloom);
+
+        clock = new THREE.Clock();
+
+        scene.add(new THREE.AmbientLight(0xfff2cf, 1.55));
+
+        const leftSpot = new THREE.SpotLight(0xffedbd, 21, 52, Math.PI / 6.8, 0.54, 1.05);
+        leftSpot.position.set(-8.5, 9, 11);
+        leftSpot.target.position.set(0, 0.8, 0);
+        scene.add(leftSpot, leftSpot.target);
+
+        const rightSpot = new THREE.SpotLight(0xf7d7ff, 13.4, 48, Math.PI / 7.5, 0.60, 1.2);
+        rightSpot.position.set(8.5, 8, 10);
+        rightSpot.target.position.set(0, 1.8, 0);
+        scene.add(rightSpot, rightSpot.target);
+
+        const backGlow = new THREE.PointLight(0xffd993, 13, 40, 1.45);
+        backGlow.position.set(0, 5.5, -6);
+        scene.add(backGlow);
+
+        church = createChurchModel();
+        church.position.set(0, -0.6, 0);
+        scene.add(church);
+
+        const floor = new THREE.Mesh(
+          new THREE.CircleGeometry(9, 80),
+          new THREE.MeshBasicMaterial({
+            color: 0xffdb8e,
+            transparent: true,
+            opacity: 0.12,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+          })
+        );
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = -3.05;
+        scene.add(floor);
+
+        const particles = new THREE.Group();
+        const sparkMat = new THREE.MeshBasicMaterial({
+          color: 0xffe4a3,
+          transparent: true,
+          opacity: 0.72,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        });
+        for (let i = 0; i < 110; i++) {
+          const s = new THREE.Mesh(new THREE.SphereGeometry(0.025 + Math.random() * 0.035, 8, 8), sparkMat.clone());
+          s.position.set((Math.random() - 0.5) * 13, Math.random() * 9 - 2.6, (Math.random() - 0.5) * 9);
+          s.userData = { phase: Math.random() * Math.PI * 2, speed: 0.5 + Math.random() * 0.8 };
+          particles.add(s);
+        }
+        scene.add(particles);
+
+        function resize() {
+          const rect = canvas.getBoundingClientRect();
+          const width = Math.max(1, rect.width);
+          const height = Math.max(1, rect.height);
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+          renderer.setSize(width, height, false);
+          composer.setSize(width, height);
+          bloom.setSize(width, height);
+        }
+
+        window.addEventListener("resize", resize);
+        resize();
+
+        function animate() {
+          const t = clock.getElapsedTime();
+
+          church.rotation.y = t * 0.34;
+          church.rotation.x = Math.sin(t * 0.35) * 0.025;
+
+          leftSpot.position.x = -8.5 + Math.sin(t * 0.55) * 1.2;
+          rightSpot.position.x = 8.5 + Math.cos(t * 0.48) * 1.2;
+          leftSpot.intensity = 12 + Math.sin(t * 0.9) * 2.2;
+          rightSpot.intensity = 7.5 + Math.cos(t * 0.7) * 1.8;
+          backGlow.intensity = 7.2 + Math.sin(t * 1.1) * 1.8;
+
+          particles.children.forEach((s) => {
+            s.position.y += 0.008 * s.userData.speed;
+            s.position.x += Math.sin(t * s.userData.speed + s.userData.phase) * 0.004;
+            s.material.opacity = 0.35 + Math.sin(t * 1.5 + s.userData.phase) * 0.25;
+            if (s.position.y > 7.4) s.position.y = -2.8;
+          });
+
+          composer.render();
+          requestAnimationFrame(animate);
+        }
+
+        animate();
+      }
+
+      function open() {
+        init();
+        modal.classList.add("is-open");
+        modal.setAttribute("aria-hidden", "false");
+
+        remaining = 20;
+        if (countdown) countdown.textContent = remaining;
+
+        clearInterval(countdownTimer);
+        countdownTimer = setInterval(() => {
+          remaining -= 1;
+          if (countdown) countdown.textContent = Math.max(0, remaining);
+          if (remaining <= 0) clearInterval(countdownTimer);
+        }, 1000);
+
+        clearTimeout(redirectTimer);
+        redirectTimer = setTimeout(() => {
+          window.location.href = targetUrl;
+        }, 20000);
+      }
+
+      return { open };
+    }
+
+    window.finalReveal = initFinalReveal();
+
+
+  </script>
+
+</body>
+</html>
